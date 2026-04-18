@@ -40,6 +40,15 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+# Knitted output and binary assets
+*.html
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+
 # pkgdown site
 docs/
 

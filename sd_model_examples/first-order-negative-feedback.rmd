@@ -1,0 +1,334 @@
+---
+title: "SD Tutorial 3: First-Order Negative Feedback Systems"
+subtitle: "Road Maps reboot with examples in R"
+author: "By Kenneth Moore"
+date: "18/07/2021"
+output: 
+  html_document:
+    toc: FALSE # table of content true
+    # toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+    number_sections: FALSE  ## if you want number sections at each table header
+    toc_float: true
+    theme: united  # many options for theme, this one is my favorite.
+    highlight: tango  # specifies the syntax highlighting style
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(deSolve)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+```
+
+**Required R packages** 
+```{r packages, eval=FALSE}
+library(deSolve)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+```
+
+# Acknowledgement
+The core content behind this tutorial derives from the [Road Maps](https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/) curriculum, developed by the System Dynamics in Education Project (SDEP) at MIT under the direction of Professor Jay Forrester. I'd like to give a personal thanks to Lees Stutz of the [Creative Learning Exchange](http://www.clexchange.org/) (CLE) for introducing me to the Road Maps curriculum, and for supporting my own SD journey. 
+
+
+With the rapid growth of data science, the purpose of this tutorial is to place the power of SD in the hands of a new generation of analysts and data scientists by including supplementary tutorials and reproducible code in R. Source material for this tutorial comes from [Generic Structures: First order negative feedback loops](https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/genericnegative.pdf)
+
+# Exponential Decay
+Exponential decay is one of the behaviors commonly exhibited by a negative feedback loop. The figure below contains a typical exponential decay curve. An important characteristic of exponential decay is its asymptotic behavior. The asymptote that the stock value approaches is the “goal” of that stock. The goal in the figure below is equal to zero.
+
+```{r example, echo=FALSE, fig.align='center'}
+
+tibble(time = seq(0,12,0.1),
+       stock = 1000*(1-0.3)^time) %>% 
+  ggplot(aes(x = time, y = stock)) +
+  geom_line(color = "grey25") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_abline(intercept = 1000, slope = -1000/3, linetype = "dashed") +
+  geom_segment(x = 3, y = 0, xend = 3, yend = 250/2, size = 1.5) +
+  geom_text(label = "asymptote (goal = 0)", x = 0, y = 0, hjust = .15, vjust = -0.5) +
+  geom_text(label = "time constant = 3", x = 3, y = 250/2, hjust = -0.1, vjust = 1) +
+  theme_light() +
+  scale_x_continuous(breaks = c(0, 3, 6, 9, 12), labels = function(x) str_glue("{x}.00"))
+
+```
+
+A simple negative feedback loop consists of a stock, an outflow from the stock, and a goal. The outflow is proportional to the difference between the stock and the goal. One can also refer to negative feedback loops as self-correcting or goal-seeking loops.
+
+
+For example, a radioactive element possesses a negative feedback structure and the resulting exponential decay. Another system with exponential decay arises from a population with no births or other inflows, and a death rate proportional to the population. Both of these systems share a common structure and exhibit similar behaviors. An additional system that exhibits exponential decay is a company that is downsizing it’s work-force to reach an explicit goal. These three systems share the basic negative feedback structure with a goal (in some cases the goal is zero), and exhibit the characteristic behavior of exponential decay
+
+## Example 1: Radioactive Decay
+
+Figure 2 shows radioactive decay. The stock represents an amount of a **radioactive compound** and the natural **rate of decay** of the compound into other compounds is the outflow. The **decay fraction** is the fraction of the initial radioactive compound that decays each time period and is characteristic of the specific compound. Assuming this is a closed system and there is no further addition of the radioactive compound, eventually the entire initial amount will transform into a stable compound. The implicit goal of the level for the system is zero.
+
+```{r decay, echo=FALSE, fig.align = 'center', out.width = "40%", fig.cap = "**rate of decay = radioactive compound * decay fraction**"}
+knitr::include_graphics(here::here("sd_model_examples", "images/first-order-neg-decay.png"))
+```
+
+## Example 2: Population-Death system
+
+The figure below models the dynamics of a population of mules. The **mule population** is the stock and the **death rate** is the outflow. The **death fraction** is the fraction of mules that die each year. The implicit goal of the mule system is zero. With no births in the system, the mules will eventually die out.
+
+```{r death, echo=FALSE, fig.align = 'center', out.width = "35%", fig.cap = "**death rate = mule population * death fraction**"}
+knitr::include_graphics(here::here("sd_model_examples", "images/first-order-neg-death.png"))
+```
+
+Examples 1 and 2 both share the same underlying structure of a stock with an outflow proportional to the stock. Both have an implicit goal of zero, which drives the exponential decay.
+
+## Example 3: Company Downsizing System
+
+The third example shows a negative feedback structure with the **number of employees** in a company as the stock and the **firing rate** as the outflow. Instead of having an implicit goal of zero as in examples 1 and 2, the company’s goal is the **desired number of employees**. The **distance to goal** is the difference between the level and the goal, and is simply the number of employees that the firm must reduce by to reach the goal.
+
+```{r downsize, echo=FALSE, fig.align = 'center', out.width = "50%", fig.cap = "**distance to goal = number of employees – desired number of employees**"}
+knitr::include_graphics(here::here("sd_model_examples", "images/first-order-neg-downsize.png"))
+```
+
+The **firing rate** decreases the stock of employees. The **firing** rate is the number of employees fired per unit time, which is the same as the **distance to goal** spread out over the **adjustment time** Therefore, the **firing** rate is equal to the **distance to goal** divided by the **adjustment time**.
+
+
+**firing rate = distance to goal/adjustment time**
+
+
+In the equation of the rate, there is division by the adjustment time, which is the time constant of the system. Dividing by the **adjustment time** is analogous to multiplying by a draining fraction as seen in examples 1 and 2. In the equation of the rate, multiplying the **distance to goal** by a draining fraction is identical to dividing by the time constant. The time constant is simply the reciprocal of the draining fraction.
+
+# R Modelling Tutorial
+
+Now we examine the generic structure of negative feedback systems used in all 3 examples and solidify the model in code. The figure below shows the generic structure of a negative feedback loop. This model of the generic structure can model examples 1, 2, and 3 as well as similar systems.
+
+```{r generic, echo=FALSE, fig.align = 'center', out.width = "45%", fig.cap = "**Negative feedback generic**"}
+knitr::include_graphics(here::here("sd_model_examples", "images/first-order-neg-generic.png"))
+```
+
+## Functional R code
+
+As with the previous tutorial, let's first define the period over which our model will run. Again we'll use generic time units and pick at step of 0.25. 
+
+``` {r sim_time}
+# define sim time
+start <- 0      
+finish <- 100   
+step <- 0.25   
+
+sim_time <- seq(from = start,
+               to = finish,
+               by = step)
+
+```
+
+We now specify the parameters and initial conditions of the system. These serve as the inputs to the model. In a simple first-order positive feedback loop, we have just two parameters: the initial value of the stock and the compounding fraction.
+
+```{r model inputs}
+
+# stocks
+stocks <- c(stock = 50)                   # unit
+# parameters
+params <- c(draining_fraction = 0.05,     # (unit/unit)/time
+            goal_for_stock = 0)           # unit
+
+```
+
+Next we can define the model by specifying how all the variables are related. We'll construct a first-order ordinary differential equation (ODE), but it's far more straight forward than it sounds. Every element of the differential equation corresponds directly to the visual components of the generic structure above.
+
+```{r model}
+
+# define a function with the appropriate parameters. Include an index for the 
+# simulation. This will be helpful later when we want to compare the results of 
+# different simulations with different parameters and initial values.
+system_model <- function(time,
+                         stocks,
+                         params,
+                         sim = 1){
+  
+  # concatenate model inputs and store as list
+  model_inputs <- c(stocks, params) %>% 
+    as.list()
+  
+  # create data environment so variable names can be accessed for ease of constructing the model
+  with(model_inputs,{
+    
+    # gap adjustment
+    adjustment_gap <- stock - goal_for_stock         # unit
+    
+    # define flow
+    flow <- adjustment_gap * draining_fraction       # unit/time
+    
+    # stock differential to integrate, flow is negative!
+    ds_dt <- -flow
+    
+    # results... when we solve this ODE below,
+    return(list(c(ds_dt),
+                change_in_stock = flow,
+                sim = sim))
+    
+  })
+}
+
+```
+
+Solve the model using `deSolve`.
+
+``` {r solve ode}
+
+# specify values for the argements in the ode solver. We use Euler's method for integration,
+# which is appropriate for simple exponential growth.
+sim_data <- ode(times = sim_time, 
+                y = stocks, 
+                parms = params, 
+                func = system_model,
+                method = "euler") %>%
+  # keep things tidy as a tibble
+  as_tibble()
+
+# check results
+glimpse(sim_data)
+
+
+
+
+```
+
+Lastly we can plot the results. This will require a little standard cleaning and reshaping for ggplot. As we can see the from the preview of the results above, all the variable types are `deSolve` objects. We will have to convert to more standard types for ggplot to read, but that's easy.
+
+``` {r plot}
+
+# Pivot to long format and alter variable types
+d <- sim_data %>%
+  relocate(sim, .before = time) %>% 
+  pivot_longer(-c(sim:time)) %>% 
+  mutate(value = as.numeric(value),
+         time = as.numeric(time),
+         name = factor(name, levels = c("stock", "change_in_stock")))
+
+d %>% 
+  ggplot(aes(x = time, y = value)) +
+  facet_wrap(~name, scales = "free") +
+  geom_line(color = "grey25") +
+  labs(title = "First-order positive feedback results")
+         
+
+```
+
+We can immediately see  evidence of a negative feedback (or balancing) system, where the system tends toward less and less change until it eventually gets to a static state. 
+
+## Generic model for specific case
+
+We can now use our generic model to simulate specific cases. Let's use the company downsizing example above. Assume the company is undergoing a huge transformation, driven by new technology and efficiency targets. The company aims to reduce its staff from 20,000 to 12,000 over seven years and needs to make the biggest changes in the first few years. We can define a model to achieve this using a few simple properties of any basic exponential decay system: the relation of a system's time constant to its halving time, and the number of halving times it takes to achieve a goal.
+
+
+First, the "halving time" of a system is the time it takes to reach half of it's goal, and the halving time is constant. The approximate halving time is related to the time constant of the system using the following formula:
+
+
+**halving time = 0.7 * time constant**
+
+
+We also know that 0.5^5 = ~0.03, so it takes five halving times to reach 97% of a goal (close enough for the company to consider the downsizing complete). Thus, if we take the seven-year goal and divide it by five halving times, we get that our **halving time = 1.4**. 
+
+
+And now using the formula above, we can divide 1.4 by 0.7 to get a **time constant of 2**, and hence, a **draining fraction of 1/2**. 
+
+### R code
+
+We now have enough information to specify the model.
+
+``` {r deer example}
+
+# define sim time
+start <- 2015   # year
+finish <- 2022  # year
+step <- 1/12   # get a value for each month
+
+sim_time <- seq(from = start,
+               to = finish,
+               by = step)
+
+# stocks
+stocks <- c(stock = 20000)                   # people
+# parameters
+params <- c(draining_fraction = 0.5,         # (people/people)/year
+            goal_for_stock = 12000)          # people
+
+# Solve.
+sim_data <- ode(times = sim_time,
+                y = stocks,
+                parms = params,
+                func = system_model,
+                method = "euler") %>%
+  as_tibble()
+
+# check results
+glimpse(sim_data)
+
+```
+
+Since we didn't bother to change anything about the model, we can now tidy up the data and change variables names for communication purposes.
+
+``` {r clean deer}
+
+# pivot and clean
+d <- sim_data %>%
+  relocate(sim, .before = time) %>%
+  pivot_longer(-c(sim:time)) %>%mutate(value = as.numeric(value),
+         name = case_when(
+           name == "stock"             ~ "Current employees",
+           name == "change_in_stock"   ~ "Firing/attrition rate (people/yr)"
+         ),
+         name = factor(name, levels = c("Current employees", "Firing/attrition rate (people/yr)")),
+         date = round_date(date_decimal(time), "month"))  %>%
+  select(-time)
+
+# Visualise
+d %>%
+  ggplot(aes(x = date, y = value)) +
+  facet_wrap(~name, scales = "free") +
+  geom_line(color = "grey25") +
+  labs(title = "Company employee downsizing over seven years",
+       y = "",
+       x = "")
+
+```
+
+### Communicate milestones
+
+Now that we have the desired reference behavior, we can easily shape up the visual and communicate key targets for the company's HR department
+
+``` {r hr}
+
+# set and filter some target dates
+labels <- d %>% 
+  filter(date == as.Date("2015-01-01", tz = "UTC") |
+           date == as.Date("2015-06-01", tz = "UTC") |
+           date == as.Date("2016-01-01", tz = "UTC") |
+           date == as.Date("2017-01-01", tz = "UTC") |
+           date == as.Date("2018-01-01", tz = "UTC") |
+           date == as.Date("2020-01-01", tz = "UTC")) %>% 
+  pivot_wider(names_from = "name", values_from = "value") %>% 
+  clean_names() %>% 
+  mutate(let_go = 20000 - round(current_employees),
+         month_quota = round(firing_attrition_rate_people_yr/12),
+         label = str_glue("Date: {date}\nAlready let go: {let_go}\nMonthly downsizing quota: {month_quota}")) %>% 
+  select(date,
+         value = current_employees,
+         label)
+
+# plot
+d %>%
+  filter(name == "Current employees") %>% 
+  ggplot(aes(x = date, y = value)) +
+  geom_line(color = "grey25") +
+  geom_point(data = labels,
+             size = 3) +
+  geom_label(data = labels, aes(label = label),
+             hjust = 0,
+             size = 2.5) + 
+  labs(title = "Company employee downsizing over seven years",
+       y = "",
+       x = "")
+
+```
+
+
+
+
