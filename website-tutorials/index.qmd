@@ -1,0 +1,17 @@
+---
+title: "System Dynamics Tutorials"
+subtitle: "A data science reboot of MIT's Road Maps self-study series"
+author: "Kenneth Moore"
+---
+
+These tutorials replicate examples from the **MIT System Dynamics in Education Project** Road Maps series (supervised by Jay W. Forrester), implemented in R using `deSolve` and `ggplot2`.
+
+## Tutorials
+
+| # | Title | Key concept |
+|---|-------|-------------|
+| [1](tut-01-first-order-positive-feedback.qmd) | First-Order Positive Feedback | Exponential growth |
+| [2](tut-02-first-order-positive-feedback-behavior.qmd) | Behavior of Positive Feedback Systems | Sensitivity analysis |
+| [3](tut-03-first-order-negative-feedback.qmd) | First-Order Negative Feedback | Goal-seeking / exponential decay |
+| [4](tut-04-closing-the-gap.qmd) | Closing the Gap | Asymptotic growth and decay |
+| [5](tut-05-s-shaped-growth.qmd) | S-Shaped Growth | Combined positive and negative feedback |
