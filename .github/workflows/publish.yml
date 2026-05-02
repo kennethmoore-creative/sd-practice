@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [feature/sd-tute-website]
+    branches: [main]
   workflow_dispatch:
 
 name: Publish to GitHub Pages
