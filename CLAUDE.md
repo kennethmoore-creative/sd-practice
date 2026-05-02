@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git Workflow
+
+Do **not** automatically commit or push changes. Make file edits and stop there — the user controls all commits and pushes. Only commit or push when explicitly asked to do so in a specific instruction.
+
 ## Project Overview
 
 An R project for building statistical/structural dynamics (sd) models from scratch. Uses RStudio (`.Rproj` configured with 2-space indentation, UTF-8 encoding).
