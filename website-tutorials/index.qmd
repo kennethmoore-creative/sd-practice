@@ -15,3 +15,4 @@ These tutorials replicate examples from the **MIT System Dynamics in Education P
 | [3](tut-03-first-order-negative-feedback.qmd) | First-Order Negative Feedback | Goal-seeking / exponential decay |
 | [4](tut-04-closing-the-gap.qmd) | Closing the Gap | Asymptotic growth and decay |
 | [5](tut-05-s-shaped-growth.qmd) | S-Shaped Growth | Combined positive and negative feedback |
+| [6](tut-06-epidemic-sis.qmd) | S-Shaped Growth — SIS Epidemic | Two-stock epidemic structure; product-driven nonlinearity |
