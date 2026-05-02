@@ -1,0 +1,27 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "SD Tutorials"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: tut-01-first-order-positive-feedback.qmd
+        text: "1: Positive Feedback"
+      - href: tut-02-first-order-positive-feedback-behavior.qmd
+        text: "2: Sensitivity Analysis"
+      - href: tut-03-first-order-negative-feedback.qmd
+        text: "3: Negative Feedback"
+      - href: tut-04-closing-the-gap.qmd
+        text: "4: Closing the Gap"
+      - href: tut-05-s-shaped-growth.qmd
+        text: "5: S-Shaped Growth"
+
+format:
+  html:
+    theme: united
+    toc: true
+    number-sections: false
+    highlight-style: tango
