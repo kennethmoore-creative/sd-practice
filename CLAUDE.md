@@ -92,6 +92,22 @@ flow = adjustment_gap / time_constant       # outflow
 1. **Explore** — build a plain `.R` script in the root folder to get the model working interactively
 2. **Present** — once the model is solid, port it into a Quarto `.qmd` tutorial in `sd_model_examples/`
 
+## Website (`website-tutorials/`)
+
+The `website-tutorials/` folder is a Quarto website published to GitHub Pages. Every push to `main` triggers a GitHub Actions workflow that rebuilds and redeploys it automatically.
+
+**When adding a new `.qmd` tutorial to `website-tutorials/`, always update both:**
+
+1. `website-tutorials/_quarto.yml` — add a navbar entry:
+   ```yaml
+   - href: tut-XX-your-tutorial-name.qmd
+     text: "X: Short Title"
+   ```
+2. `website-tutorials/index.qmd` — add a row to the tutorial table:
+   ```markdown
+   | [X](tut-XX-your-tutorial-name.qmd) | Full Tutorial Title | Key concept |
+   ```
+
 ## Variable Naming Convention (R scripts)
 
 Prefix all variables by type so the model structure is self-documenting:
