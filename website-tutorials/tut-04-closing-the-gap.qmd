@@ -15,6 +15,48 @@ format:
 knitr::opts_chunk$set(echo = TRUE)
 library(deSolve)
 library(tidyverse)
+
+make_cloud <- function(cx, cy, w = 0.45, h = 0.28) {
+  theta <- seq(0, 2 * pi, length.out = 200)
+  bump  <- 1 + 0.12 * sin(8 * theta)
+  tibble(x = cx + w * bump * cos(theta), y = cy + h * bump * sin(theta))
+}
+
+make_ellipse <- function(cx, cy, rx = 1.4, ry = 0.42) {
+  theta <- seq(0, 2 * pi, length.out = 100)
+  tibble(x = cx + rx * cos(theta), y = cy + ry * sin(theta))
+}
+
+flow_arrow    <- arrow(length = unit(0.44, "cm"), type = "closed")
+flow_arrow_bi <- arrow(ends = "both", length = unit(0.44, "cm"), type = "closed")
+info_arrow    <- arrow(length = unit(0.32, "cm"), type = "open")
+
+draw_neg_feedback_simple <- function(stock_label, flow_label, param_label) {
+  ggplot() +
+    annotate("rect", xmin = 0.8, xmax = 4.8, ymin = 2.0, ymax = 3.0,
+             fill = "white", colour = "black", linewidth = 1.6) +
+    annotate("rect", xmin = 0.92, xmax = 4.68, ymin = 2.12, ymax = 2.88,
+             fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+    annotate("text", x = 2.8, y = 2.5, label = stock_label,
+             size = 3.5, fontface = "bold") +
+    annotate("segment", x = 4.8, xend = 7.8, y = 2.5, yend = 2.5,
+             linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
+    annotate("text", x = 6.3, y = 2.95, label = flow_label,
+             size = 3.2, colour = "#d45b4e") +
+    geom_polygon(data = make_cloud(8.5, 2.5), aes(x, y),
+                 fill = "white", colour = "black", linewidth = 0.7) +
+    annotate("text", x = 6.3, y = 1.3, label = param_label, size = 3.0) +
+    annotate("segment", x = 6.3, xend = 6.3, y = 1.55, yend = 2.42,
+             linetype = "dashed", colour = "grey40", arrow = info_arrow) +
+    geom_curve(data = data.frame(x = 2.8, y = 2.0, xend = 6.3, yend = 2.35),
+               aes(x = x, y = y, xend = xend, yend = yend),
+               curvature = 0.45, linetype = "dashed", colour = "grey40",
+               arrow = info_arrow) +
+    annotate("text", x = 4.5, y = 1.0, label = "B1  (-)", size = 3.8,
+             colour = "#c0392b", fontface = "bold") +
+    theme_void() +
+    coord_cartesian(xlim = c(0, 10), ylim = c(0.5, 4.5))
+}
 ```
 
 **Required R packages**
@@ -34,6 +76,57 @@ Source material for this tutorial comes from [Generic Structures: First-Order Ne
 
 In the previous tutorial, we explored exponential decay — a negative feedback system where a stock drains asymptotically toward zero. But zero is just one possible goal. The generic structure of a first-order negative feedback loop is more powerful than that: the stock will always asymptotically seek *any* goal you specify, whether it is being approached from above or below.
 
+```{r}
+#| label: generic
+#| echo: false
+#| fig-align: center
+#| fig-width: 8
+#| fig-height: 4
+#| fig-cap: "**Negative feedback generic**"
+
+ggplot() +
+  # Stock
+  annotate("rect", xmin = 0.5, xmax = 3.8, ymin = 2.7, ymax = 3.7,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 0.62, xmax = 3.68, ymin = 2.82, ymax = 3.58,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 2.15, y = 3.2, label = "Stock",
+           size = 3.5, fontface = "bold") +
+  # Outflow arrow: Flow
+  annotate("segment", x = 3.8, xend = 8.0, y = 3.2, yend = 3.2,
+           linewidth = 2, colour = "grey40", arrow = flow_arrow_bi) +
+  annotate("text", x = 5.9, y = 3.65, label = "Flow",
+           size = 3.2, colour = "grey40") +
+  # Sink cloud
+  geom_polygon(data = make_cloud(8.7, 3.2), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  # Auxiliary: Adjustment Gap
+  geom_polygon(data = make_ellipse(4.8, 1.8), aes(x, y),
+               fill = "white", colour = "grey50", linewidth = 0.6) +
+  annotate("text", x = 4.8, y = 1.8, label = "GAP", size = 3.0) +
+  # Parameter: Goal for Stock
+  annotate("text", x = 2.15, y = 0.9, label = "GOAL", size = 3.0) +
+  # Parameter: Draining Fraction
+  annotate("text", x = 7.8, y = 1.8, label = "Adjustment\nFraction", size = 3.0) +
+  # Info: Stock → Adjustment Gap
+  annotate("segment", x = 2.15, xend = 3.42, y = 2.7, yend = 2.00,
+           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  # Info: Goal for Stock → Adjustment Gap
+  annotate("segment", x = 2.15, xend = 3.42, y = 1.12, yend = 1.65,
+           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  # Info: Adjustment Gap → Outflow valve
+  annotate("segment", x = 6.2, xend = 5.9, y = 1.8, yend = 3.1,
+           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  # Info: Draining Fraction → Outflow valve
+  annotate("segment", x = 7.5, xend = 6.1, y = 2.0, yend = 3.1,
+           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  # Loop label
+  annotate("text", x = 4.5, y = 2.55, label = "B1  (-)", size = 3.8,
+           colour = "#c0392b", fontface = "bold") +
+  theme_void() +
+  coord_cartesian(xlim = c(0, 10.5), ylim = c(0.3, 4.8))
+```
+
 Stick around till the end of the tutorial for a bonus insight about how this generic structure can serve as a universal problem-solving tool.
 
 The Road Maps curriculum summarises goal-seeking behavior neatly in a single observation:
@@ -44,7 +137,7 @@ The key insight in this tutorial is about **how we define the gap** between the 
 
 $$\text{gap} = \text{goal} - \text{stock}$$
 
-This small change has an important consequence: the sign of the gap — and therefore the sign of the flow — is now **self-managing**. A positive gap (stock below goal) drives the stock upward. A negative gap (stock above goal) drives the stock downward. The same generic structure handles both cases without any modification.
+This small change has an important consequence: the sign of the gap — and therefore the sign of the flow — is now **self-managing** and bi-directional. A positive gap (stock below goal) drives the stock upward. A negative gap (stock above goal) drives the stock downward. The same generic structure handles both cases without any modification.
 
 # The Generic Model
 

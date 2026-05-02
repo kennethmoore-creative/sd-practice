@@ -48,6 +48,9 @@ vignettes/*.pdf
 *.png
 *.gif
 *.svg
+*.css
+*.js
+*.woff
 
 # pkgdown site
 docs/

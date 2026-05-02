@@ -34,7 +34,7 @@ Rscript -e "source('path/to/script.R')"
 
 This project replicates examples from the **MIT System Dynamics in Education Project** Road Maps series (supervised by Jay W. Forrester). The PDFs in `RoadMaps Reference/` are the source material. Original models used STELLA/Vensim/DYNAMO — we implement equivalent models in R.
 
-The project will grow to cover the full Road Maps curriculum progressively. PDFs currently on hand cover chapters 3 and 4, but new chapters will be added over time.
+The project will grow to cover the full Road Maps curriculum progressively. PDFs currently on hand cover chapters 3, 4, and 5. New chapters will be added over time.
 
 ### Core modeling pattern (Euler integration)
 
@@ -80,6 +80,13 @@ flow = adjustment_gap / time_constant       # outflow
 - **Fish Banks**: Two-stock renewable resource depletion model (tragedy of the commons)
 - **Problems with causal loop diagrams**: Why stock-and-flow diagrams are more rigorous
 
+### Road Maps 5 additions
+- **Delays**: material vs. information delays; `SMTH1` delay function
+- **Combined feedback in first-order systems**: one stock with both a positive and negative loop — four possible behaviors: equilibrium, exponential growth, asymptotic growth, S-shaped growth. Equilibrium is found by equating inflow and outflow algebraically.
+- **S-shaped growth Structure 1**: one stock, two flows; positive (birth) loop initially dominant; nonlinear density-dependent deaths multiplier causes negative loop to take over at the inflection point. Key variables: `Births_Normal`, `Average_Lifetime`, `Area`, `Deaths_Multiplier` (lookup table).
+- **S-shaped growth Structure 2**: two stocks (Healthy / Sick), SIS epidemic structure (no permanent immunity); infection rate driven by product of healthy and sick stocks — `Catching_Illness = Healthy * (Sick/Total) * Population_Interactions * P_Catching`. Key insight: S-shaped growth is a **behavior**, not a structure — two mechanistically different structures can produce it.
+- **Model validity**: structural, behavioral, and policy-implication tests (Shreckengost)
+
 ## Workflow
 
 1. **Explore** — build a plain `.R` script in the root folder to get the model working interactively
@@ -100,10 +107,10 @@ Prefix all variables by type so the model structure is self-documenting:
 ## Integration Method
 
 Choose based on model complexity:
-- `method = "euler"` — simple first-order models
-- `method = "rk4"` — oscillating or higher-order systems (Euler can produce spurious damping at larger step sizes)
+- `method = "euler"` — linear first-order models where the flow is a constant fraction of the stock or gap (e.g. closing the gap, simple exponential growth/decay)
+- `method = "rk4"` — any model with nonlinear relationships: lookup tables, products of stocks, oscillating systems. Euler evaluates the derivative only at the start of each step and can overshoot badly when the derivative itself changes rapidly (e.g. near the inflection point of S-shaped growth, or when a deaths multiplier kicks in sharply). RK4 evaluates at four points per step and tracks the curve accurately without requiring a tiny step size.
 
-Always note the step size if it affects numerical accuracy.
+Always note the step size if it affects numerical accuracy. The existing oscillating system script has a comment illustrating this: Euler at step=0.25 produces spurious damped oscillations that are purely numerical artefacts.
 
 ## R Implementation Patterns
 
@@ -156,10 +163,54 @@ When a simulation runs over calendar years (e.g. 2015–2022), use `lubridate`:
 date = round_date(date_decimal(time), "month")
 ```
 
-## Completed tutorials and their Road Maps source
+### Nonlinear lookup tables (graph functions)
+When a Road Maps model uses a graph/lookup function (e.g. deaths multiplier as a function of density), implement it with `approxfun()` **outside** the model function, then call it inside:
+
+```r
+deaths_mult_fn <- approxfun(x_values, y_values, rule = 2)
+# rule = 2 clamps out-of-range inputs to the boundary value
+
+model <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    a_deaths_multiplier <- deaths_mult_fn(a_normalized_density)
+    # ...
+  })
+}
+```
+
+### Two-stock model function signature
+When there are two stocks, return two derivatives as a single concatenated vector. The order must match the order in the `stocks` named vector passed to `ode()`:
+
+```r
+stocks <- c(s_healthy = 90, s_sick = 10)
+
+model <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    # ...
+    return(list(c(ds_healthy_dt, ds_sick_dt),   # order matches stocks vector
+                catching_illness = f_catching_illness,
+                recovery_rate    = f_recovery_rate))
+  })
+}
+```
+
+## Completed work and their Road Maps source
+
+### Quarto tutorials (`sd_model_examples/`)
 
 | File | Tutorial # | Road Maps source (PDF) |
 |------|-----------|----------------------|
-| `first-order-positive-feedback.rmd` | Tutorial 1 | D-4474-2, §2–3: generic structure + deer/bank/knowledge examples; specific case: deer population (stock=100, fraction=0.1/yr, 2000–2020) |
-| `first-order-positive-feedback-behavior.rmd` | Tutorial 2 | D-4474-2, §4: sensitivity analysis — varying initial stock (-200 to 200) and compounding fraction (0 to 0.4), replicating Figures 7 & 8 |
-| `first-order-negative-feedback.rmd` | Tutorial 3 | D-4475-2, §2–3: generic structure + radioactive decay / mule death / company downsizing; specific case: downsizing 20,000→12,000 employees over 7 years |
+| `first-order-positive-feedback.rmd` | Tutorial 1 (legacy .rmd) | D-4474-2, §2–3: generic structure + deer/bank/knowledge examples; specific case: deer population (stock=100, fraction=0.1/yr, 2000–2020) |
+| `first-order-positive-feedback-behavior.rmd` | Tutorial 2 (legacy .rmd) | D-4474-2, §4: sensitivity analysis — varying initial stock (-200 to 200) and compounding fraction (0 to 0.4), replicating Figures 7 & 8 |
+| `first-order-negative-feedback.rmd` | Tutorial 3 (legacy .rmd) | D-4475-2, §2–3: generic structure + radioactive decay / mule death / company downsizing; specific case: downsizing 20,000→12,000 employees over 7 years |
+| `closing-the-gap.qmd` | Tutorial 4 | D-4475-2, §3–4: generic negative feedback with inverted gap definition (`goal − stock`); shows exponential decay (stock above goal) and asymptotic growth (stock below goal) from the same model |
+
+### Exploratory R scripts (root folder)
+
+| File | Road Maps source |
+|------|-----------------|
+| `company_downsizing.R` | D-4475-2, §2.3: company downsizing — first complete negative feedback script using prefixed naming convention |
+| `closing_the_gap.R` | D-4475-2: generic closing-the-gap model with inverted gap; two runs showing decay and growth |
+| `s_shaped_structure_1_rabbit.R` | D-4432-2, Structure 1: rabbit population with density-dependent deaths multiplier (nonlinear lookup via `approxfun`); three initial values replicating Exercise 1 |
+| `epidemic_sis.R` | D-4432-2, Structure 2: two-stock SIS epidemic model; four initial conditions replicating Exercise 2; equilibrium H=40 S=60 verified |
+| `combined_feedback_trees.R` | D-4593-2: Eddie's tree nursery — all four behavior modes (equilibrium, exponential growth, asymptotic growth, S-shaped growth) in one script |
