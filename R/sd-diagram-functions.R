@@ -1,5 +1,9 @@
 library(tidyverse)
-source("R/gg-helper-functions.R")
+if (file.exists("R/gg-helper-functions.R")) {
+  source("R/gg-helper-functions.R")
+} else {
+  source("../R/gg-helper-functions.R")
+}
 
 # Draws a generic first-order positive feedback stock-and-flow diagram.
 # stock_label: text inside the stock rectangle
