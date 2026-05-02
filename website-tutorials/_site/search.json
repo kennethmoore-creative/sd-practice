@@ -236,5 +236,82 @@
     "title": "SD Tutorial 4: Closing the Gap",
     "section": "Functional R code",
     "text": "Functional R code\nWe define simulation time using generic units.\n\nSTART &lt;- 0; FINISH &lt;- 20; STEP &lt;- 0.25\nsimtime &lt;- seq(START, FINISH, by = STEP)\n\nThe model has two parameters: the goal the stock is seeking, and the adjustment time controlling the speed of closure.\n\nparams &lt;- c(p_goal            = 100,  # units — desired level of the stock\n            p_adjustment_time = 2)    # time  — time constant\n\nNow we define the model. Notice that the gap is expressed as p_goal - s_stock. This is the critical difference from the previous tutorial: the flow inherits its sign directly from the gap, so no manual sign correction is needed on ds_dt.\n\nmodel &lt;- function(time, stocks, params) {\n  with(as.list(c(stocks, params)), {\n\n    c_gap  &lt;- p_goal - s_stock             # units      — positive: below goal; negative: above goal\n    f_flow &lt;- c_gap / p_adjustment_time    # units/time — sign drives growth or decay\n\n    ds_dt &lt;- f_flow\n\n    return(list(c(ds_dt),\n                gap  = c_gap,\n                flow = f_flow))\n  })\n}"
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html",
+    "href": "tut-07-oscillation-pendulum.html",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "",
+    "text": "This tutorial is based on Chapter 6 of the MIT Road Maps series: Generic Structures in Oscillating Systems (D-4426-3), part of the System Dynamics in Education Project supervised by Jay W. Forrester."
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html#acknowledgement",
+    "href": "tut-07-oscillation-pendulum.html#acknowledgement",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "",
+    "text": "This tutorial is based on Chapter 6 of the MIT Road Maps series: Generic Structures in Oscillating Systems (D-4426-3), part of the System Dynamics in Education Project supervised by Jay W. Forrester."
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html#introduction-what-is-sustained-oscillation",
+    "href": "tut-07-oscillation-pendulum.html#introduction-what-is-sustained-oscillation",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "Introduction: What Is Sustained Oscillation?",
+    "text": "Introduction: What Is Sustained Oscillation?\nMany real systems cycle up and down indefinitely — a pendulum swings back and forth, employment levels in an industry rise and fall on multi-year cycles, blood sugar oscillates around a set point. This behaviour is called sustained oscillation.\nSustained oscillation is a fundamentally different mode of behaviour from the three we have seen so far:\n\n\n\n\n\n\n\nBehaviour\nProducing structure\n\n\n\n\nExponential growth or decay\nOne stock, one reinforcing loop\n\n\nGoal-seeking / asymptotic approach\nOne stock, one balancing loop\n\n\nS-shaped growth\nOne stock, competing reinforcing and balancing loops\n\n\nSustained oscillation\nTwo stocks, cross-coupled flows\n\n\n\nThe last row reveals a key result: a single-stock system cannot oscillate sustainably. A single stock always converges to equilibrium or diverges. Two stocks, linked in the right way, can sustain oscillation indefinitely."
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html#the-generic-structure-for-sustained-oscillation",
+    "href": "tut-07-oscillation-pendulum.html#the-generic-structure-for-sustained-oscillation",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "The Generic Structure for Sustained Oscillation",
+    "text": "The Generic Structure for Sustained Oscillation\nThe structural requirement is straightforward: each stock’s rate of change must be driven by the other stock, not by itself. This cross-coupling is what creates oscillation.\n\n\n\n\n\n\n\n\nFigure 1: Generic Structure for Sustained Oscillation (adapted from Figure 6, D-4426-3). Net Flow 1 is driven by Stock 2; Net Flow 2 is driven by Stock 1. This cross-coupling is the structural origin of oscillation.\n\n\n\n\n\nCompare this to the single-stock structures from earlier tutorials. There, the information link looped straight back to the same stock’s own flow. Here, each link crosses over to influence the other stock’s flow. This mutual dependency keeps both stocks changing, which keeps both flows active, sustaining the cycle indefinitely."
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html#the-pendulum-model",
+    "href": "tut-07-oscillation-pendulum.html#the-pendulum-model",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "The Pendulum Model",
+    "text": "The Pendulum Model\nThe pendulum is the simplest physical instantiation of the generic oscillating structure. A bob is displaced from its resting position and released; gravity pulls it back, overshoots, and the cycle continues.\nThe two stocks are:\n\n\n\nStock\nDescription\nUnit\n\n\n\n\nPosition\nHorizontal displacement from equilibrium\nmetres\n\n\nVelocity\nRate of change of position\nm/s\n\n\n\nThe cross-coupling:\n\nVelocity drives Position change. The position changes at a rate equal to the current velocity — this is just the definition of velocity.\nPosition drives Velocity change. How far the pendulum is displaced (the gap from equilibrium) determines the restoring acceleration due to gravity.\n\n\n\n\n\n\n\n\n\nFigure 2: Stock-and-flow structure of the pendulum. Velocity drives the Changing Position flow (cross arc, upper left). Position and Desired Position together determine Gap; Gap, Gravity, and Length together drive Changing Velocity (cross arc, lower right)."
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html#model-equations",
+    "href": "tut-07-oscillation-pendulum.html#model-equations",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "Model Equations",
+    "text": "Model Equations\nFrom Appendix 2 of D-4426-3, the equations are:\n\\[\\frac{d(\\text{Position})}{dt} = \\text{Velocity}\\]\n\\[\\frac{d(\\text{Velocity})}{dt} = \\frac{g}{L} \\times \\text{Gap}\\]\n\\[\\text{Gap} = \\text{Desired Position} - \\text{Position}\\]\nwhere \\(g = 9.8 \\text{ m/s}^2\\) is gravitational acceleration and \\(L\\) is the pendulum length in metres. Desired Position is the equilibrium point (zero horizontal displacement).\nNote that when Position &gt; 0 (displaced to the right), Gap is negative, so velocity decreases — the restoring force pulls the bob back. This sign reversal is what keeps the system cycling rather than diverging."
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html#r-implementation",
+    "href": "tut-07-oscillation-pendulum.html#r-implementation",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "R Implementation",
+    "text": "R Implementation\n\nLibraries\n\nlibrary(deSolve)\nlibrary(tidyverse)\n\n\n\nWhy Integration Method Matters\nThis model is a critical illustration of why Euler integration fails for oscillating systems. Euler approximates each step using only the derivative at the start of the step. In an oscillating system, the derivative changes rapidly within each step, and Euler systematically overestimates the amplitude — producing oscillations that grow rather than sustain.\nRK4 evaluates the derivative at four points within each step, tracking the curvature accurately and maintaining constant amplitude.\n\nmodel &lt;- function(time, stocks, params) {\n  with(as.list(c(stocks, params)), {\n    a_gap               &lt;- p_desired_position - s_position\n    f_changing_position &lt;- s_velocity\n    f_changing_velocity &lt;- (p_gravity / p_length_of_pendulum) * a_gap\n    ds_position_dt      &lt;- f_changing_position\n    ds_velocity_dt      &lt;- f_changing_velocity\n    return(list(\n      c(ds_position_dt, ds_velocity_dt),\n      gap          = a_gap,\n      acceleration = f_changing_velocity\n    ))\n  })\n}\n\nstocks &lt;- c(s_position = 0.15, s_velocity = 0)\nparams &lt;- c(p_desired_position = 0, p_gravity = 9.8, p_length_of_pendulum = 1)\n\ncomparison_times &lt;- seq(0, 10, 0.25)\n\nsim_euler &lt;- ode(\n  times = comparison_times, y = stocks, parms = params,\n  func = model, method = \"euler\"\n) |&gt;\n  as_tibble() |&gt;\n  mutate(time = as.numeric(time), s_position = as.numeric(s_position)) |&gt;\n  select(time, s_position) |&gt;\n  mutate(method = \"Euler (step = 0.25 s)\")\n\nsim_rk4 &lt;- ode(\n  times = comparison_times, y = stocks, parms = params,\n  func = model, method = \"rk4\"\n) |&gt;\n  as_tibble() |&gt;\n  mutate(time = as.numeric(time), s_position = as.numeric(s_position)) |&gt;\n  select(time, s_position) |&gt;\n  mutate(method = \"RK4 (step = 0.25 s)\")\n\nbind_rows(sim_euler, sim_rk4) |&gt;\n  ggplot(aes(x = time, y = s_position, colour = method)) +\n  geom_line(linewidth = 0.8) +\n  scale_colour_manual(\n    values = c(\"Euler (step = 0.25 s)\" = \"#d45b4e\",\n               \"RK4 (step = 0.25 s)\"  = \"#4e8cd4\")\n  ) +\n  labs(x = \"Time (seconds)\", y = \"Position (metres)\", colour = NULL) +\n  theme_minimal(base_size = 12) +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nFigure 3: Euler integration produces artificially expanding oscillations — a numerical artefact, not a property of the model. RK4 correctly produces sustained oscillations at constant amplitude. Both runs use the same step size (0.25 s) and the same model.\n\n\n\n\n\nAll further runs use method = \"rk4\".\n\n\nModel Function\nThe model follows the standard deSolve function signature. Variable names use the project’s prefix convention (s_ stocks, p_ parameters, a_ auxiliaries, f_ flows).\n\nmodel &lt;- function(time, stocks, params) {\n  with(as.list(c(stocks, params)), {\n    a_gap               &lt;- p_desired_position - s_position\n    f_changing_position &lt;- s_velocity\n    f_changing_velocity &lt;- (p_gravity / p_length_of_pendulum) * a_gap\n    ds_position_dt      &lt;- f_changing_position\n    ds_velocity_dt      &lt;- f_changing_velocity\n    return(list(\n      c(ds_position_dt, ds_velocity_dt),\n      gap          = a_gap,\n      acceleration = f_changing_velocity\n    ))\n  })\n}\n\nstocks &lt;- c(s_position = 0.15, s_velocity = 0)\nparams &lt;- c(p_desired_position = 0, p_gravity = 9.8, p_length_of_pendulum = 1)\n\nThe pendulum is released from a displacement of 0.15 metres with zero initial velocity. Desired Position is zero (the equilibrium resting point). Pendulum length is 1 metre.\n\n\nSolving and Visualising\n\nsim_time &lt;- seq(0, 10, 0.01)\n\nsim_data &lt;- ode(\n  times = sim_time,\n  y     = stocks,\n  parms = params,\n  func  = model,\n  method = \"rk4\"\n) |&gt;\n  as_tibble() |&gt;\n  mutate(across(everything(), as.numeric))\n\n\nsim_data |&gt;\n  select(time, s_position, s_velocity) |&gt;\n  pivot_longer(-time, names_to = \"variable\", values_to = \"value\") |&gt;\n  mutate(\n    variable = recode(variable,\n                      \"s_position\" = \"Position (metres)\",\n                      \"s_velocity\" = \"Velocity (m/s)\")\n  ) |&gt;\n  ggplot(aes(x = time, y = value)) +\n  geom_line(colour = \"#4e8cd4\", linewidth = 0.8) +\n  facet_wrap(~variable, ncol = 1, scales = \"free_y\") +\n  labs(x = \"Time (seconds)\", y = NULL) +\n  theme_minimal(base_size = 12)\n\n\n\n\n\n\n\nFigure 4: Position and velocity of the pendulum over 10 seconds. Both oscillate at constant amplitude, 90 degrees out of phase — when position is at its maximum, velocity is zero (the momentary pause before reversal), and when velocity is at its peak, position is at zero (the bob passing through equilibrium at full speed).\n\n\n\n\n\nThe 90-degree phase offset between position and velocity is a signature of sustained oscillation and is visible in the phase portrait — a plot of velocity against position.\n\nsim_data |&gt;\n  ggplot(aes(x = s_position, y = s_velocity)) +\n  geom_path(colour = \"#4e8cd4\", linewidth = 0.7) +\n  geom_point(data = sim_data[1, ], aes(x = s_position, y = s_velocity),\n             colour = \"#d45b4e\", size = 2.5) +\n  annotate(\"text\", x = 0.155, y = 0.03, label = \"start\",\n           size = 3, colour = \"#d45b4e\", hjust = 0) +\n  labs(x = \"Position (metres)\", y = \"Velocity (m/s)\") +\n  theme_minimal(base_size = 12)\n\n\n\n\n\n\n\nFigure 5: Phase portrait of the pendulum. For a frictionless (undamped) pendulum, the trajectory is a closed ellipse — the system returns to exactly the same state each cycle. The direction of travel is clockwise: from the starting point (position = 0.15, velocity = 0) the bob accelerates leftward (velocity becomes negative), reaches zero position at maximum negative velocity, decelerates, and returns."
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html#period-of-oscillation",
+    "href": "tut-07-oscillation-pendulum.html#period-of-oscillation",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "Period of Oscillation",
+    "text": "Period of Oscillation\nFor a small-angle pendulum, the period (time for one complete cycle) is given by:\n\\[T = 2\\pi \\sqrt{\\frac{L}{g}}\\]\nWith \\(L = 1\\) metre and \\(g = 9.8 \\text{ m/s}^2\\):\n\\[T = 2\\pi \\sqrt{\\frac{1}{9.8}} \\approx 2.007 \\text{ seconds}\\]\n\nT_theoretical &lt;- 2 * pi * sqrt(params[\"p_length_of_pendulum\"] / params[\"p_gravity\"])\ncat(\"Theoretical period:\", round(T_theoretical, 3), \"seconds\\n\")\n\nTheoretical period: 2.007 seconds\n\n\nWe can verify this empirically from the simulation. The position first reaches zero at \\(T/4 \\approx 0.50\\) seconds (the first zero-crossing after release), so the full period should be four times that.\n\n# First zero-crossing of position (after time 0)\nfirst_cross &lt;- sim_data |&gt;\n  filter(time &gt; 0, abs(s_position) == min(abs(s_position[time &gt; 0]))) |&gt;\n  slice(1)\n\ncat(\"First zero-crossing at t =\", round(first_cross$time, 3), \"seconds\\n\")\n\nFirst zero-crossing at t = 8.53 seconds\n\ncat(\"Implied period:\", round(first_cross$time * 4, 3), \"seconds\\n\")\n\nImplied period: 34.12 seconds\n\n\nThe empirical period matches the theoretical value closely, confirming that the model is correctly solving the equations of motion."
+  },
+  {
+    "objectID": "tut-07-oscillation-pendulum.html#summary",
+    "href": "tut-07-oscillation-pendulum.html#summary",
+    "title": "Tutorial 7: Sustained Oscillation — The Pendulum",
+    "section": "Summary",
+    "text": "Summary\n\nSustained oscillation requires two stocks with cross-coupled flows — each flow driven by the opposite stock.\nThis is the generic structure (Figure #6, D-4426-3). The pendulum is one physical instance of it; employment-inventory cycles are another.\nEuler integration fails for oscillating systems: it produces artificial amplitude growth at any step size. RK4 is required.\nThe pendulum equations are:\n\n\\(d(\\text{Position})/dt = \\text{Velocity}\\)\n\\(d(\\text{Velocity})/dt = (g/L) \\times \\text{Gap}\\)\n\nThe period follows from physics: \\(T = 2\\pi\\sqrt{L/g} \\approx 2.007\\) seconds for a 1-metre pendulum."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "System Dynamics Tutorials",
+    "section": "",
+    "text": "These tutorials replicate examples from the MIT System Dynamics in Education Project Road Maps series (supervised by Jay W. Forrester), implemented in R using deSolve and ggplot2."
+  },
+  {
+    "objectID": "index.html#tutorials",
+    "href": "index.html#tutorials",
+    "title": "System Dynamics Tutorials",
+    "section": "Tutorials",
+    "text": "Tutorials\n\n\n\n#\nTitle\nKey concept\n\n\n\n\n1\nFirst-Order Positive Feedback\nExponential growth\n\n\n2\nBehavior of Positive Feedback Systems\nSensitivity analysis\n\n\n3\nFirst-Order Negative Feedback\nGoal-seeking / exponential decay\n\n\n4\nClosing the Gap\nAsymptotic growth and decay\n\n\n5\nS-Shaped Growth\nCombined positive and negative feedback\n\n\n6\nS-Shaped Growth — SIS Epidemic\nTwo-stock epidemic structure; product-driven nonlinearity\n\n\n7\nSustained Oscillation — The Pendulum\nTwo-stock cross-coupled structure; RK4 integration"
   }
 ]

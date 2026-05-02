@@ -16,3 +16,4 @@ These tutorials replicate examples from the **MIT System Dynamics in Education P
 | [4](tut-04-closing-the-gap.qmd) | Closing the Gap | Asymptotic growth and decay |
 | [5](tut-05-s-shaped-growth.qmd) | S-Shaped Growth | Combined positive and negative feedback |
 | [6](tut-06-epidemic-sis.qmd) | S-Shaped Growth — SIS Epidemic | Two-stock epidemic structure; product-driven nonlinearity |
+| [7](tut-07-oscillation-pendulum.qmd) | Sustained Oscillation — The Pendulum | Two-stock cross-coupled structure; RK4 integration |
