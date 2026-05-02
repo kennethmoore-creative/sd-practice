@@ -133,6 +133,55 @@
     "text": "Observations\nThe rabbit population traces the same S-shaped arc, settling at a carrying capacity of approximately 918 rabbits — matching Structure 1 almost exactly.\nThree panels tell the food story behind the curve:\n\ncarrots_eaten — food demand grows proportionally with population, rising steadily toward 9,180 kg/year at equilibrium. This is the mechanistic driver of scarcity: a fixed supply shared among a growing population.\nnormalized_nutrition — starts at 1 (food is plentiful per rabbit) and falls steadily as population grows. At equilibrium it reaches 1/6 — the exact level at which deaths balance births.\nnutritional_stress — the inverse of normalized nutrition, and the emergent analogue of Structure 1’s deaths_multiplier. Both reach approximately 6 at equilibrium, for the same algebraic reason: birth rate × average lifetime = 1.5 × 4 = 6. The lookup table and the food balance encode the same constraint — one empirically, one mechanistically."
   },
   {
+    "objectID": "tut-06-epidemic-sis.html",
+    "href": "tut-06-epidemic-sis.html",
+    "title": "SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model",
+    "section": "",
+    "text": "Required R packages\nlibrary(deSolve)\nlibrary(tidyverse)"
+  },
+  {
+    "objectID": "tut-06-epidemic-sis.html#parameters",
+    "href": "tut-06-epidemic-sis.html#parameters",
+    "title": "SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\nParameter\nSymbol\nValue\nUnits\n\n\n\n\nDuration of illness\n\\(D\\)\n0.5\nmonths\n\n\nPopulation interactions\n\\(PI\\)\n10\ncontacts / person / month\n\n\nProbability of catching\n\\(PC\\)\n0.5\ndimensionless"
+  },
+  {
+    "objectID": "tut-06-epidemic-sis.html#model-function",
+    "href": "tut-06-epidemic-sis.html#model-function",
+    "title": "SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model",
+    "section": "Model function",
+    "text": "Model function\n\nmodel &lt;- function(time, stocks, params) {\n  with(as.list(c(stocks, params)), {\n\n    a_total_population  &lt;- s_healthy + s_sick\n    a_prob_contact_sick &lt;- s_sick / a_total_population\n\n    f_catching_illness &lt;- s_healthy * a_prob_contact_sick *\n                          p_population_interactions * p_prob_catching   # people/month\n    f_recovering    &lt;- s_sick / p_duration_of_illness                # people/month\n\n    ds_healthy_dt &lt;- f_recovering - f_catching_illness\n    ds_sick_dt    &lt;- f_catching_illness - f_recovering\n\n    return(list(c(ds_healthy_dt, ds_sick_dt),\n                catching_illness = f_catching_illness,\n                recovery_rate    = f_recovering))\n  })\n}"
+  },
+  {
+    "objectID": "tut-06-epidemic-sis.html#parameters-and-simulation-time",
+    "href": "tut-06-epidemic-sis.html#parameters-and-simulation-time",
+    "title": "SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model",
+    "section": "Parameters and simulation time",
+    "text": "Parameters and simulation time\n\nparams &lt;- c(p_duration_of_illness     = 0.5,   # months\n            p_population_interactions = 10,    # contacts/person/month\n            p_prob_catching           = 0.5)   # dimensionless\n\nsimtime &lt;- seq(0, 5, by = 0.125)               # months"
+  },
+  {
+    "objectID": "tut-06-epidemic-sis.html#single-test-run",
+    "href": "tut-06-epidemic-sis.html#single-test-run",
+    "title": "SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model",
+    "section": "Single test run",
+    "text": "Single test run\nBefore running multiple scenarios, let us verify the model produces sensible output for one set of initial conditions: 10 sick people and 90 healthy people.\n\nstocks_a &lt;- c(s_healthy = 90, s_sick = 10)\n\ntest_run &lt;- ode(y = stocks_a, times = simtime, func = model,\n                parms = params, method = \"rk4\") %&gt;%\n  as_tibble() %&gt;%\n  pivot_longer(-time) %&gt;%\n  mutate(value = as.numeric(value),\n         time  = as.numeric(time))\n\ntest_run %&gt;%\n  filter(name %in% c(\"s_healthy\", \"s_sick\")) %&gt;%\n  ggplot(aes(x = time, y = value, colour = name)) +\n  geom_line(linewidth = 0.9) +\n  scale_colour_manual(values = c(s_healthy = \"#4e8cd4\", s_sick = \"#d45b4e\"),\n                      labels = c(s_healthy = \"Healthy People\",\n                                 s_sick    = \"Sick People\")) +\n  labs(title  = \"SIS epidemic — single run (10 sick, 90 healthy)\",\n       x      = \"Months\",\n       y      = \"People\",\n       colour = NULL)\n\n\n\n\n\n\n\n\nThe system reaches a stable equilibrium rather than infecting the entire population. The epidemic overshoots slightly then settles — a classic S-shaped trajectory for sick people."
+  },
+  {
+    "objectID": "tut-06-epidemic-sis.html#exercise-2-four-initial-conditions",
+    "href": "tut-06-epidemic-sis.html#exercise-2-four-initial-conditions",
+    "title": "SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model",
+    "section": "Exercise 2: four initial conditions",
+    "text": "Exercise 2: four initial conditions\nTo understand how initial conditions affect behaviour, we run four scenarios matching Exercise 2 from the Road Maps source material. We wrap the simulation in a function and use purrr::pmap_dfr() to iterate across all four scenarios at once.\n\nrun_sis &lt;- function(sim_id, init_healthy, init_sick,\n                    start = 0, finish = 5, step = 0.125) {\n  stocks &lt;- c(s_healthy = init_healthy, s_sick = init_sick)\n  sim_time &lt;- seq(start, finish, by = step)\n\n  ode(y = stocks, times = sim_time, func = model,\n      parms = params, method = \"rk4\") %&gt;%\n    as_tibble() %&gt;%\n    pivot_longer(-time) %&gt;%\n    mutate(value = as.numeric(value),\n           time  = as.numeric(time),\n           run   = sim_id)\n}\n\n\nsim_results &lt;- pmap_dfr(\n  list(\n    sim_id       = c(\"a: 5 sick, 95 healthy\",\n                     \"b: 0 sick — no epidemic\",\n                     \"c: 55 sick, 45 healthy\",\n                     \"d: 50 sick, 50 healthy\"),\n    init_healthy = c(95, 100, 45, 50),\n    init_sick    = c(5,   0, 55, 50)\n  ),\n  .f = run_sis\n)\n\nglimpse(sim_results)\n\nRows: 656\nColumns: 4\n$ time  &lt;dbl&gt; 0.000, 0.000, 0.000, 0.000, 0.125, 0.125, 0.125, 0.125, 0.250, 0…\n$ name  &lt;chr&gt; \"s_healthy\", \"s_sick\", \"catching_illness\", \"recovery_rate\", \"s_h…\n$ value &lt;dbl&gt; 95.000000, 5.000000, 23.750000, 10.000000, 92.990980, 7.009020, …\n$ run   &lt;chr&gt; \"a: 5 sick, 95 healthy\", \"a: 5 sick, 95 healthy\", \"a: 5 sick, 95…\n\n\n\nsim_results %&gt;%\n  filter(name %in% c(\"s_healthy\", \"s_sick\")) %&gt;%\n  mutate(name = recode(name,\n                       s_healthy = \"Healthy People\",\n                       s_sick    = \"Sick People\")) %&gt;%\n  ggplot(aes(x = time, y = value, colour = run)) +\n  geom_line(linewidth = 0.8) +\n  facet_wrap(~name) +\n  labs(title  = \"Exercise 2 — four initial conditions\",\n       x      = \"Months\",\n       y      = \"People\",\n       colour = \"Run\")\n\n\n\n\n\n\n\n\nThe four runs reveal the key behaviours of this system:\n\nRun a (5 sick) and run d (50 sick): both converge to the same equilibrium of 40 healthy / 60 sick, regardless of where they started. The system has a single stable attractor.\nRun c (55 sick): starts above the equilibrium sick count and decays back down to it — the epidemic recedes.\nRun b (0 sick): with no sick people to start, the positive feedback loop cannot ignite. Total population stays healthy — this is an unstable equilibrium at Sick = 0."
+  },
+  {
+    "objectID": "tut-06-epidemic-sis.html#run-e-terminal-illness",
+    "href": "tut-06-epidemic-sis.html#run-e-terminal-illness",
+    "title": "SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model",
+    "section": "Run e: terminal illness",
+    "text": "Run e: terminal illness\nWhat happens if there is no recovery? A terminal illness removes the balancing loop B1 entirely. Without recovery pulling people back to the healthy pool, the epidemic follows a pure S-curve until the entire population is sick.\n\nmodel_no_recovery &lt;- function(time, stocks, params) {\n  with(as.list(c(stocks, params)), {\n\n    a_total_population  &lt;- s_healthy + s_sick\n    a_prob_contact_sick &lt;- s_sick / a_total_population\n\n    f_catching_illness &lt;- s_healthy * a_prob_contact_sick *\n                          p_population_interactions * p_prob_catching\n    f_recovering    &lt;- 0\n\n    ds_healthy_dt &lt;- -f_catching_illness\n    ds_sick_dt    &lt;-  f_catching_illness\n\n    return(list(c(ds_healthy_dt, ds_sick_dt),\n                catching_illness = f_catching_illness,\n                recovery_rate    = f_recovering))\n  })\n}\n\n\nsimtime_e &lt;- seq(0, 8, by = 0.125)   # extended to show full S-curve\n\nrun_e &lt;- ode(y = c(s_healthy = 90, s_sick = 10), times = simtime_e,\n             func = model_no_recovery, parms = params, method = \"rk4\") %&gt;%\n  as_tibble() %&gt;%\n  pivot_longer(-time) %&gt;%\n  mutate(value = as.numeric(value),\n         time  = as.numeric(time))\n\nrun_e %&gt;%\n  filter(name %in% c(\"s_healthy\", \"s_sick\")) %&gt;%\n  mutate(name = recode(name,\n                       s_healthy = \"Healthy People\",\n                       s_sick    = \"Sick People\")) %&gt;%\n  ggplot(aes(x = time, y = value, colour = name)) +\n  geom_line(linewidth = 0.9) +\n  scale_colour_manual(values = c(\"Healthy People\" = \"#4e8cd4\",\n                                 \"Sick People\"     = \"#d45b4e\")) +\n  labs(title  = \"Run e — terminal illness (no recovery)\",\n       x      = \"Months\",\n       y      = \"People\",\n       colour = NULL)\n\n\n\n\n\n\n\n\nWithout recovery, sick people grow in a classic S-shape — slow at first (few sick), then rapid (positive loop dominates), then levelling off as the healthy pool is exhausted (negative loop B2 dominates). The system reaches a new equilibrium of Sick = 100, Healthy = 0."
+  },
+  {
     "objectID": "tut-03-first-order-negative-feedback.html",
     "href": "tut-03-first-order-negative-feedback.html",
     "title": "SD Tutorial 3: First-Order Negative Feedback Systems",
@@ -200,6 +249,6 @@
     "href": "index.html#tutorials",
     "title": "System Dynamics Tutorials",
     "section": "Tutorials",
-    "text": "Tutorials\n\n\n\n#\nTitle\nKey concept\n\n\n\n\n1\nFirst-Order Positive Feedback\nExponential growth\n\n\n2\nBehavior of Positive Feedback Systems\nSensitivity analysis\n\n\n3\nFirst-Order Negative Feedback\nGoal-seeking / exponential decay\n\n\n4\nClosing the Gap\nAsymptotic growth and decay\n\n\n5\nS-Shaped Growth\nCombined positive and negative feedback"
+    "text": "Tutorials\n\n\n\n#\nTitle\nKey concept\n\n\n\n\n1\nFirst-Order Positive Feedback\nExponential growth\n\n\n2\nBehavior of Positive Feedback Systems\nSensitivity analysis\n\n\n3\nFirst-Order Negative Feedback\nGoal-seeking / exponential decay\n\n\n4\nClosing the Gap\nAsymptotic growth and decay\n\n\n5\nS-Shaped Growth\nCombined positive and negative feedback\n\n\n6\nS-Shaped Growth — SIS Epidemic\nTwo-stock epidemic structure; product-driven nonlinearity"
   }
 ]
