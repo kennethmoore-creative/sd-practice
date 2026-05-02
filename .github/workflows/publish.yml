@@ -28,8 +28,11 @@ jobs:
 
       - uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Publish to GitHub Pages
-        uses: quarto-dev/quarto-actions/publish@v2
+      - name: Render site
+        run: quarto render website-tutorials
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          target: gh-pages
-          path: website-tutorials
+          folder: website-tutorials/_site
+          branch: gh-pages
