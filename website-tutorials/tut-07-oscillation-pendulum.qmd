@@ -1,0 +1,477 @@
+---
+title: "Tutorial 7: Sustained Oscillation — The Pendulum"
+subtitle: "Two-stock cross-coupled structures and why integration method matters"
+author: "Kenneth Moore"
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(deSolve)
+library(tidyverse)
+source("../R/sd-diagram-functions.R")
+```
+
+## Acknowledgement
+
+This tutorial is based on Chapter 6 of the MIT Road Maps series: *Generic Structures in Oscillating Systems* (D-4426-3), part of the System Dynamics in Education Project supervised by Jay W. Forrester.
+
+---
+
+## Introduction: What Is Sustained Oscillation?
+
+Many real systems cycle up and down indefinitely — a pendulum swings back and forth, employment levels in an industry rise and fall on multi-year cycles, blood sugar oscillates around a set point. This behaviour is called **sustained oscillation**.
+
+Sustained oscillation is a fundamentally different mode of behaviour from the three we have seen so far:
+
+| Behaviour | Producing structure |
+|---|---|
+| Exponential growth or decay | One stock, one reinforcing loop |
+| Goal-seeking / asymptotic approach | One stock, one balancing loop |
+| S-shaped growth | One stock, competing reinforcing and balancing loops |
+| **Sustained oscillation** | **Two stocks, cross-coupled flows** |
+
+The last row reveals a key result: **a single-stock system cannot oscillate sustainably**. A single stock always converges to equilibrium or diverges. Two stocks, linked in the right way, can sustain oscillation indefinitely.
+
+---
+
+## The Generic Structure for Sustained Oscillation
+
+The structural requirement is straightforward: each stock's rate of change must be driven by the *other* stock, not by itself. This **cross-coupling** is what creates oscillation.
+
+```{r}
+#| label: fig-generic-structure
+#| fig-cap: "Generic Structure for Sustained Oscillation (adapted from Figure 6, D-4426-3). Net Flow 1 is driven by Stock 2; Net Flow 2 is driven by Stock 1. This cross-coupling is the structural origin of oscillation."
+#| fig-height: 7.0
+#| echo: false
+
+flow_arrow <- arrow(ends = "both", length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+
+nf1_valve_x <- 3.5
+nf2_valve_x <- 6.5
+
+ggplot() +
+
+  # --- Stock 1 (upper right) ---
+  annotate("rect", xmin = 5.5, xmax = 9.5, ymin = 5.5, ymax = 6.5,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 5.62, xmax = 9.38, ymin = 5.62, ymax = 6.38,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 7.5, y = 6.0, label = "Stock 1",
+           size = 3.5, fontface = "bold") +
+
+  # Net Flow 1: cloud (left) → Stock 1 (pointing right)
+  geom_polygon(data = make_cloud(0.9, 6.0), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 1.45, xend = 5.4, y = 6.0, yend = 6.0,
+           linewidth = 2, colour = "#4e8cd4",
+           arrow = flow_arrow) +
+  annotate("text", x = nf1_valve_x, y = 6.5,
+           label = "Net Flow 1", size = 3.2, colour = "#4e8cd4") +
+  annotate("text", x = nf1_valve_x-1.5, y = 8.2,
+           label = "Factors\naffecting\nFlow 1", size = 3.2) +
+
+  # --- Stock 2 (lower left) ---
+  annotate("rect", xmin = 0.5, xmax = 4.5, ymin = 3.3, ymax = 4.3,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 0.62, xmax = 4.38, ymin = 3.42, ymax = 4.18,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 2.5, y = 3.8, label = "Stock 2",
+           size = 3.5, fontface = "bold") +
+
+  # Net Flow 2: cloud (right) → Stock 2 (pointing left)
+  geom_polygon(data = make_cloud(9.1, 3.8), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 8.55, xend = 4.6, y = 3.8, yend = 3.8,
+           linewidth = 2, colour = "#4e8cd4",
+           arrow = flow_arrow) +
+  annotate("text", x = nf2_valve_x, y = 3.2,
+           label = "Net Flow 2", size = 3.2, colour = "#4e8cd4") +
+  annotate("text", x = nf2_valve_x-1.5, y = 1.3,
+           label = "Factors\naffecting\nFlow 2", size = 3.2) +
+
+  # --- Cross-coupling info arcs ---
+  # Stock 2 drives Net Flow 1
+  geom_curve(
+    data = data.frame(x = 2.5, y = 4.3, xend = nf1_valve_x-0.5, yend = 5.88),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+  geom_curve(
+    data = data.frame(x = nf1_valve_x-1, y = 8.2, xend = nf1_valve_x, yend = 6.7),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+  # Stock 1 drives Net Flow 2
+  geom_curve(
+    data = data.frame(x = 7.5, y = 5.5, xend = nf2_valve_x+0.5, yend = 3.92),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+  geom_curve(
+    data = data.frame(x = nf2_valve_x-1, y = 1.3, xend = nf2_valve_x, yend = 2.9),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.35, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+
+  theme_void() +
+  coord_cartesian(xlim = c(0, 10), ylim = c(0.75, 8.5))
+```
+
+Compare this to the single-stock structures from earlier tutorials. There, the information link looped straight back to the same stock's own flow. Here, each link *crosses over* to influence the other stock's flow. This mutual dependency keeps both stocks changing, which keeps both flows active, sustaining the cycle indefinitely.
+
+---
+
+## The Pendulum Model
+
+The pendulum is the simplest physical instantiation of the generic oscillating structure. A bob is displaced from its resting position and released; gravity pulls it back, overshoots, and the cycle continues.
+
+The two stocks are:
+
+| Stock | Description | Unit |
+|---|---|---|
+| **Position** | Horizontal displacement from equilibrium | metres |
+| **Velocity** | Rate of change of position | m/s |
+
+The cross-coupling:
+
+- **Velocity drives Position change.** The position changes at a rate equal to the current velocity — this is just the definition of velocity.
+- **Position drives Velocity change.** How far the pendulum is displaced (the *gap* from equilibrium) determines the restoring acceleration due to gravity.
+
+```{r}
+#| label: fig-pendulum-structure
+#| fig-cap: "Stock-and-flow structure of the pendulum. Velocity drives the Changing Position flow (cross arc, upper left). Position and Desired Position together determine Gap; Gap, Gravity, and Length together drive Changing Velocity (cross arc, lower right)."
+#| fig-height: 4.5
+#| echo: false
+
+flow_arrow <- arrow(ends = "both", length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+
+cp_valve_x <- 3.5
+cp_valve_y <- 4.0
+cv_valve_x <- 6.5
+cv_valve_y <- 1.8
+
+ggplot() +
+
+  # --- Position stock (upper right) ---
+  annotate("rect", xmin = 5.5, xmax = 9.5, ymin = 3.5, ymax = 4.5,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 5.62, xmax = 9.38, ymin = 3.62, ymax = 4.38,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 7.5, y = 4.0, label = "Position",
+           size = 3.5, fontface = "bold") +
+
+  # Changing Position: cloud (left) → Position (pointing right)
+  geom_polygon(data = make_cloud(0.9, 4.0), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 1.55, xend = 5.5, y = 4.0, yend = 4.0,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = cp_valve_x, y = cp_valve_y, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = cp_valve_x, y = 4.52,
+           label = "Changing Position", size = 3.2, colour = "#4e8cd4") +
+
+  # --- Velocity stock (lower left) ---
+  annotate("rect", xmin = 0.5, xmax = 4.5, ymin = 1.3, ymax = 2.3,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 0.62, xmax = 4.38, ymin = 1.42, ymax = 2.18,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 2.5, y = 1.8, label = "Velocity",
+           size = 3.5, fontface = "bold") +
+
+  # Changing Velocity: cloud (right) → Velocity (pointing left)
+  geom_polygon(data = make_cloud(9.1, 1.8), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 8.45, xend = 4.5, y = 1.8, yend = 1.8,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = cv_valve_x, y = cv_valve_y, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = cv_valve_x, y = 2.32,
+           label = "Changing Velocity", size = 3.2, colour = "#4e8cd4") +
+
+  # --- Auxiliary variable ---
+  annotate("text", x = 7.5, y = 3.0, label = "Gap", size = 3.2) +
+
+  # --- Parameters ---
+  annotate("text", x = 9.1, y = 2.5, label = "Desired\nPosition",
+           size = 3.0, hjust = 0.5) +
+  annotate("text", x = 7.1, y = 0.85, label = "Gravity (g)",
+           size = 3.0, hjust = 0.5) +
+  annotate("text", x = 9.1, y = 0.85, label = "Length (L)",
+           size = 3.0, hjust = 0.5) +
+
+  # --- Info links (geom_curve throughout) ---
+  # 1. Velocity → Changing Position valve (cross-coupling)
+  geom_curve(
+    data = data.frame(x = 2.5, y = 2.3, xend = cp_valve_x, yend = 3.88),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+  # 2. Position → Gap
+  geom_curve(
+    data = data.frame(x = 7.5, y = 3.5, xend = 7.5, yend = 3.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+  # 3. Desired Position → Gap
+  geom_curve(
+    data = data.frame(x = 8.75, y = 2.62, xend = 7.9, yend = 2.97),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.25, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+  # 4. Gap → Changing Velocity valve
+  geom_curve(
+    data = data.frame(x = 7.1, y = 2.88, xend = cv_valve_x, yend = 1.92),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.25, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+  # 5. Gravity → Changing Velocity valve
+  geom_curve(
+    data = data.frame(x = 6.9, y = 0.95, xend = 6.35, yend = 1.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+  # 6. Length → Changing Velocity valve
+  geom_curve(
+    data = data.frame(x = 8.75, y = 0.95, xend = 6.65, yend = 1.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5,
+    arrow = info_arrow
+  ) +
+
+  theme_void() +
+  coord_cartesian(xlim = c(0, 10), ylim = c(0.3, 5.2))
+```
+
+---
+
+## Model Equations
+
+From Appendix 2 of D-4426-3, the equations are:
+
+$$\frac{d(\text{Position})}{dt} = \text{Velocity}$$
+
+$$\frac{d(\text{Velocity})}{dt} = \frac{g}{L} \times \text{Gap}$$
+
+$$\text{Gap} = \text{Desired Position} - \text{Position}$$
+
+where $g = 9.8 \text{ m/s}^2$ is gravitational acceleration and $L$ is the pendulum length in metres. Desired Position is the equilibrium point (zero horizontal displacement).
+
+Note that when Position > 0 (displaced to the right), Gap is negative, so velocity *decreases* — the restoring force pulls the bob back. This sign reversal is what keeps the system cycling rather than diverging.
+
+---
+
+## R Implementation
+
+### Libraries
+
+```{r}
+#| label: libraries
+#| message: false
+
+library(deSolve)
+library(tidyverse)
+```
+
+### Why Integration Method Matters
+
+This model is a critical illustration of why Euler integration fails for oscillating systems. Euler approximates each step using only the derivative at the *start* of the step. In an oscillating system, the derivative changes rapidly within each step, and Euler systematically overestimates the amplitude — producing oscillations that *grow* rather than sustain.
+
+RK4 evaluates the derivative at four points within each step, tracking the curvature accurately and maintaining constant amplitude.
+
+```{r}
+#| label: fig-euler-vs-rk4
+#| fig-cap: "Euler integration produces artificially expanding oscillations — a numerical artefact, not a property of the model. RK4 correctly produces sustained oscillations at constant amplitude. Both runs use the same step size (0.25 s) and the same model."
+#| message: false
+
+model <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    a_gap               <- p_desired_position - s_position
+    f_changing_position <- s_velocity
+    f_changing_velocity <- (p_gravity / p_length_of_pendulum) * a_gap
+    ds_position_dt      <- f_changing_position
+    ds_velocity_dt      <- f_changing_velocity
+    return(list(
+      c(ds_position_dt, ds_velocity_dt),
+      gap          = a_gap,
+      acceleration = f_changing_velocity
+    ))
+  })
+}
+
+stocks <- c(s_position = 0.15, s_velocity = 0)
+params <- c(p_desired_position = 0, p_gravity = 9.8, p_length_of_pendulum = 1)
+
+comparison_times <- seq(0, 10, 0.25)
+
+sim_euler <- ode(
+  times = comparison_times, y = stocks, parms = params,
+  func = model, method = "euler"
+) |>
+  as_tibble() |>
+  mutate(time = as.numeric(time), s_position = as.numeric(s_position)) |>
+  select(time, s_position) |>
+  mutate(method = "Euler (step = 0.25 s)")
+
+sim_rk4 <- ode(
+  times = comparison_times, y = stocks, parms = params,
+  func = model, method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(time = as.numeric(time), s_position = as.numeric(s_position)) |>
+  select(time, s_position) |>
+  mutate(method = "RK4 (step = 0.25 s)")
+
+bind_rows(sim_euler, sim_rk4) |>
+  ggplot(aes(x = time, y = s_position, colour = method)) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_manual(
+    values = c("Euler (step = 0.25 s)" = "#d45b4e",
+               "RK4 (step = 0.25 s)"  = "#4e8cd4")
+  ) +
+  labs(x = "Time (seconds)", y = "Position (metres)", colour = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+All further runs use `method = "rk4"`.
+
+### Model Function
+
+The model follows the standard `deSolve` function signature. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `a_` auxiliaries, `f_` flows).
+
+```{r}
+#| label: model-function
+
+model <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    a_gap               <- p_desired_position - s_position
+    f_changing_position <- s_velocity
+    f_changing_velocity <- (p_gravity / p_length_of_pendulum) * a_gap
+    ds_position_dt      <- f_changing_position
+    ds_velocity_dt      <- f_changing_velocity
+    return(list(
+      c(ds_position_dt, ds_velocity_dt),
+      gap          = a_gap,
+      acceleration = f_changing_velocity
+    ))
+  })
+}
+
+stocks <- c(s_position = 0.15, s_velocity = 0)
+params <- c(p_desired_position = 0, p_gravity = 9.8, p_length_of_pendulum = 1)
+```
+
+The pendulum is released from a displacement of 0.15 metres with zero initial velocity. Desired Position is zero (the equilibrium resting point). Pendulum length is 1 metre.
+
+### Solving and Visualising
+
+```{r}
+#| label: solve
+
+sim_time <- seq(0, 10, 0.01)
+
+sim_data <- ode(
+  times = sim_time,
+  y     = stocks,
+  parms = params,
+  func  = model,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(across(everything(), as.numeric))
+```
+
+```{r}
+#| label: fig-position-velocity
+#| fig-cap: "Position and velocity of the pendulum over 10 seconds. Both oscillate at constant amplitude, 90 degrees out of phase — when position is at its maximum, velocity is zero (the momentary pause before reversal), and when velocity is at its peak, position is at zero (the bob passing through equilibrium at full speed)."
+#| fig-height: 4.5
+
+sim_data |>
+  select(time, s_position, s_velocity) |>
+  pivot_longer(-time, names_to = "variable", values_to = "value") |>
+  mutate(
+    variable = recode(variable,
+                      "s_position" = "Position (metres)",
+                      "s_velocity" = "Velocity (m/s)")
+  ) |>
+  ggplot(aes(x = time, y = value)) +
+  geom_line(colour = "#4e8cd4", linewidth = 0.8) +
+  facet_wrap(~variable, ncol = 1, scales = "free_y") +
+  labs(x = "Time (seconds)", y = NULL) +
+  theme_minimal(base_size = 12)
+```
+
+The 90-degree phase offset between position and velocity is a signature of sustained oscillation and is visible in the **phase portrait** — a plot of velocity against position.
+
+```{r}
+#| label: fig-phase-portrait
+#| fig-cap: "Phase portrait of the pendulum. For a frictionless (undamped) pendulum, the trajectory is a closed ellipse — the system returns to exactly the same state each cycle. The direction of travel is clockwise: from the starting point (position = 0.15, velocity = 0) the bob accelerates leftward (velocity becomes negative), reaches zero position at maximum negative velocity, decelerates, and returns."
+
+sim_data |>
+  ggplot(aes(x = s_position, y = s_velocity)) +
+  geom_path(colour = "#4e8cd4", linewidth = 0.7) +
+  geom_point(data = sim_data[1, ], aes(x = s_position, y = s_velocity),
+             colour = "#d45b4e", size = 2.5) +
+  annotate("text", x = 0.155, y = 0.03, label = "start",
+           size = 3, colour = "#d45b4e", hjust = 0) +
+  labs(x = "Position (metres)", y = "Velocity (m/s)") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+## Period of Oscillation
+
+For a small-angle pendulum, the period (time for one complete cycle) is given by:
+
+$$T = 2\pi \sqrt{\frac{L}{g}}$$
+
+With $L = 1$ metre and $g = 9.8 \text{ m/s}^2$:
+
+$$T = 2\pi \sqrt{\frac{1}{9.8}} \approx 2.007 \text{ seconds}$$
+
+```{r}
+#| label: period
+
+T_theoretical <- 2 * pi * sqrt(params["p_length_of_pendulum"] / params["p_gravity"])
+cat("Theoretical period:", round(T_theoretical, 3), "seconds\n")
+```
+
+We can verify this empirically from the simulation. The position first reaches zero at $T/4 \approx 0.50$ seconds (the first zero-crossing after release), so the full period should be four times that.
+
+```{r}
+#| label: period-empirical
+
+# First zero-crossing of position (after time 0)
+first_cross <- sim_data |>
+  filter(time > 0, abs(s_position) == min(abs(s_position[time > 0]))) |>
+  slice(1)
+
+cat("First zero-crossing at t =", round(first_cross$time, 3), "seconds\n")
+cat("Implied period:", round(first_cross$time * 4, 3), "seconds\n")
+```
+
+The empirical period matches the theoretical value closely, confirming that the model is correctly solving the equations of motion.
+
+---
+
+## Summary
+
+- Sustained oscillation requires **two stocks** with **cross-coupled flows** — each flow driven by the opposite stock.
+- This is the generic structure (Figure #6, D-4426-3). The pendulum is one physical instance of it; employment-inventory cycles are another.
+- **Euler integration fails for oscillating systems**: it produces artificial amplitude growth at any step size. RK4 is required.
+- The pendulum equations are:
+  - $d(\text{Position})/dt = \text{Velocity}$
+  - $d(\text{Velocity})/dt = (g/L) \times \text{Gap}$
+- The period follows from physics: $T = 2\pi\sqrt{L/g} \approx 2.007$ seconds for a 1-metre pendulum.

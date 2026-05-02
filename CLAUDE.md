@@ -136,6 +136,52 @@ The `R/` folder is the **single source of truth** for all reusable functions use
   ```
 - **To create a new reusable function** — add it to the relevant file in `R/` first, then source it. Never define a reusable function only inside a `.qmd` chunk or `.R` script.
 
+## SD Stock-and-Flow Diagram Style Guide
+
+These conventions apply to all stock-and-flow diagrams drawn inline in `.qmd` tutorial chunks. Simple first-order diagrams may use the reusable helpers in `R/sd-diagram-functions.R`; complex or unique diagrams (multi-stock, oscillating, epidemic, etc.) are coded inline following this guide.
+
+### Arrow objects (declare once per chunk, before `ggplot()`)
+
+```r
+flow_arrow <- arrow(length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+```
+
+### Valve position variables (declare before `ggplot()`)
+
+Name every valve position explicitly so the flow segment, the valve circle, and all incoming info links reference the same variables:
+
+```r
+cp_valve_x <- 3.5
+cp_valve_y <- 4.0
+```
+
+### Primitives
+
+| Element | How to draw |
+|---------|-------------|
+| Stock | Two nested rects: outer `annotate("rect", linewidth=1.6)` + inner `annotate("rect", fill="#fafaf0", linewidth=0.5)`, inner inset 0.12 units on all sides |
+| Source / sink | `geom_polygon(data = make_cloud(cx, cy), aes(x, y), ...)` |
+| Flow arrow (unidirectional) | `annotate("segment", linewidth=2, colour="#4e8cd4", arrow=flow_arrow)` where `flow_arrow <- arrow(length=unit(0.44,"cm"), type="closed")` |
+| Flow arrow (bi-flow) | Same segment call, but declare `flow_arrow <- arrow(ends="both", length=unit(0.44,"cm"), type="closed")`. Use `ends="both"` **if and only if** the flow can reverse direction (e.g. net flows in oscillating systems). Never add it to a unidirectional inflow or outflow. |
+| Valve | `annotate("point", x=valve_x, y=valve_y, size=5, colour="#4e8cd4")` — placed **after** the flow segment so it renders on top |
+| Auxiliary variable | `annotate("text", ...)` — plain text, **no ellipse** |
+| Parameter | `annotate("text", ...)` — plain text, **no ellipse** |
+| Info link | `geom_curve(..., arrow=info_arrow)` — use `annotate("segment")` only when elements are so close that a curve cannot render cleanly |
+
+### Content rules
+
+- **Show every auxiliary and parameter** that appears in the model equations — removing ellipses frees enough canvas space to do this without clutter.
+- **Info links use `geom_curve` throughout** as the default. Straight segments are the exception, not the rule.
+
+### Figure sizing
+
+`fig-height` and `ylim` span must scale together. When the `ylim` range changes, scale `fig-height` proportionally to preserve element proportions:
+
+```
+new_fig_height = old_fig_height × (new_ylim_span / old_ylim_span)
+```
+
 ## Variable Naming Convention (R scripts)
 
 Prefix all variables by type so the model structure is self-documenting:

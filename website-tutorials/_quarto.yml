@@ -20,6 +20,8 @@ website:
         text: "5: S-Shaped Growth"
       - href: tut-06-epidemic-sis.qmd
         text: "6: SIS Epidemic"
+      - href: tut-07-oscillation-pendulum.qmd
+        text: "7: Oscillation"
 
 format:
   html:
