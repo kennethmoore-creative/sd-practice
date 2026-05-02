@@ -108,6 +108,24 @@ The `website-tutorials/` folder is a Quarto website published to GitHub Pages. E
    | [X](tut-XX-your-tutorial-name.qmd) | Full Tutorial Title | Key concept |
    ```
 
+## R function library (`R/`)
+
+The `R/` folder is the **single source of truth** for all reusable functions used across `.qmd` tutorials and exploratory `.R` scripts. Never redefine a function inline if it already exists here.
+
+| File | Contains |
+|------|----------|
+| `R/gg-helper-functions.R` | `make_cloud`, `make_ellipse` — ggplot2 shape primitives for SD diagrams |
+| `R/sd-diagram-functions.R` | `draw_pos_feedback`, `draw_neg_feedback_simple` — reusable stock-and-flow diagram functions (sources `gg-helper-functions.R`) |
+
+**Rules:**
+
+- **To use an existing function** — source the appropriate file at the top of your script or `.qmd` setup chunk:
+  ```r
+  source("R/sd-diagram-functions.R")        # from a root .R script
+  source("../R/sd-diagram-functions.R")     # from website-tutorials/*.qmd
+  ```
+- **To create a new reusable function** — add it to the relevant file in `R/` first, then source it. Never define a reusable function only inside a `.qmd` chunk or `.R` script.
+
 ## Variable Naming Convention (R scripts)
 
 Prefix all variables by type so the model structure is self-documenting:
