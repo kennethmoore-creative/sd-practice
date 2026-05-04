@@ -184,6 +184,10 @@ window.Quarto = {
     <a class="nav-link active" href="./tut-06-epidemic-sis.html" aria-current="page"> 
 <span class="menu-text">6: SIS Epidemic</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./tut-07-oscillation-pendulum.html"> 
+<span class="menu-text">7: Oscillation</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -343,21 +347,20 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="cf">function</span>(time, stocks, params) {</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(stocks, params)), {</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    a_total_population  <span class="ot">&lt;-</span> s_healthy <span class="sc">+</span> s_sick</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    a_prob_contact_sick <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> a_total_population</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    f_catching_illness <span class="ot">&lt;-</span> s_healthy <span class="sc">*</span> a_prob_contact_sick <span class="sc">*</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                          p_population_interactions <span class="sc">*</span> p_prob_catching   <span class="co"># people/month</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    f_recovering    <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> p_duration_of_illness                <span class="co"># people/month</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    ds_healthy_dt <span class="ot">&lt;-</span> f_recovering <span class="sc">-</span> f_catching_illness</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    ds_sick_dt    <span class="ot">&lt;-</span> f_catching_illness <span class="sc">-</span> f_recovering</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="fu">c</span>(ds_healthy_dt, ds_sick_dt),</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">catching_illness =</span> f_catching_illness,</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">recovery_rate    =</span> f_recovering))</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    a_prob_contact_sick <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> (s_healthy <span class="sc">+</span> s_sick)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    f_catching_illness <span class="ot">&lt;-</span> s_healthy <span class="sc">*</span> a_prob_contact_sick <span class="sc">*</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                          p_population_interactions <span class="sc">*</span> p_prob_catching   <span class="co"># people/month</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    f_recovering    <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> p_duration_of_illness                <span class="co"># people/month</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    ds_healthy_dt <span class="ot">&lt;-</span> f_recovering <span class="sc">-</span> f_catching_illness</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    ds_sick_dt    <span class="ot">&lt;-</span> f_catching_illness <span class="sc">-</span> f_recovering</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="fu">c</span>(ds_healthy_dt, ds_sick_dt),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">catching_illness =</span> f_catching_illness,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">recovery_rate    =</span> f_recovering))</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="parameters-and-simulation-time" class="level2">
