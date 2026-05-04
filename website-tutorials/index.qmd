@@ -4,7 +4,7 @@ subtitle: "A data science reboot of MIT's Road Maps self-study series"
 author: "Kenneth Moore"
 ---
 
-These tutorials replicate examples from the **MIT System Dynamics in Education Project** Road Maps series (supervised by Jay W. Forrester), implemented in R using `deSolve` and `ggplot2`.
+These tutorials replicate examples from the **MIT System Dynamics in Education Project** Road Maps series (supervised by Jay W. Forrester), implemented in R using `deSolve` and `tidyverse`.
 
 ## Tutorials
 
