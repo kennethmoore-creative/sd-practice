@@ -305,7 +305,7 @@
     "href": "index.html",
     "title": "System Dynamics Tutorials",
     "section": "",
-    "text": "These tutorials replicate examples from the MIT System Dynamics in Education Project Road Maps series (supervised by Jay W. Forrester), implemented in R using deSolve and ggplot2."
+    "text": "These tutorials replicate examples from the MIT System Dynamics in Education Project Road Maps series (supervised by Jay W. Forrester), implemented in R using deSolve and tidyverse."
   },
   {
     "objectID": "index.html#tutorials",
