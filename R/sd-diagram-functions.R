@@ -50,16 +50,18 @@ draw_pos_feedback <- function(stock_label, flow_label, param_label) {
              fill = "#fafaf0", colour = "black", linewidth = 0.5) +
     annotate("text", x = 6.8, y = 2.5, label = stock_label,
              size = 3.5, fontface = "bold") +
-    annotate("text", x = valve_x, y = 1.3, label = param_label, size = 3.0) +
+    annotate("text", x = valve_x-1, y = 1.3, label = param_label, size = 3.0) +
+    # param label to flow
     geom_curve(
-      data = data.frame(x = valve_x, y = 1.55, xend = valve_x, yend = 2.4),
+      data = data.frame(x = valve_x-1, y = 1.55, xend = valve_x-0.05, yend = 2.35),
       aes(x = x, y = y, xend = xend, yend = yend),
       curvature = 0.2, colour = "grey40", linewidth = 0.5,
       arrow = info_arrow
     ) +
-    geom_curve(data = data.frame(x = 6.8, y = 3.0, xend = valve_x, yend = 2.65),
+    # stock to flow
+    geom_curve(data = data.frame(x = 6.0, y = 2.0, xend = valve_x+0.05, yend = valve_y - 0.15),
                aes(x = x, y = y, xend = xend, yend = yend),
-               curvature = 0.45, colour = "grey40",
+               curvature = -0.4, colour = "grey40", linewidth = 0.5,
                arrow = info_arrow) +
     annotate("text", x = 5.0, y = 3.75, label = "R1  (+)", size = 3.8,
              colour = "#27ae60", fontface = "bold") +
@@ -95,7 +97,7 @@ draw_neg_feedback_simple <- function(stock_label, flow_label, param_label) {
                  fill = "white", colour = "black", linewidth = 0.7) +
     annotate("text", x = valve_x, y = 1.3, label = param_label, size = 3.0) +
     geom_curve(
-      data = data.frame(x = valve_x, y = 1.55, xend = valve_x, yend = 2.4),
+      data = data.frame(x = valve_x, y = 1.55, xend = valve_x, yend = 2.35),
       aes(x = x, y = y, xend = xend, yend = yend),
       curvature = 0.2, colour = "grey40", linewidth = 0.5,
       arrow = info_arrow

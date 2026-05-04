@@ -18,7 +18,7 @@
     "href": "tut-06-epidemic-sis.html#model-function",
     "title": "SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model",
     "section": "Model function",
-    "text": "Model function\n\nmodel &lt;- function(time, stocks, params) {\n  with(as.list(c(stocks, params)), {\n\n    a_total_population  &lt;- s_healthy + s_sick\n    a_prob_contact_sick &lt;- s_sick / a_total_population\n\n    f_catching_illness &lt;- s_healthy * a_prob_contact_sick *\n                          p_population_interactions * p_prob_catching   # people/month\n    f_recovering    &lt;- s_sick / p_duration_of_illness                # people/month\n\n    ds_healthy_dt &lt;- f_recovering - f_catching_illness\n    ds_sick_dt    &lt;- f_catching_illness - f_recovering\n\n    return(list(c(ds_healthy_dt, ds_sick_dt),\n                catching_illness = f_catching_illness,\n                recovery_rate    = f_recovering))\n  })\n}"
+    "text": "Model function\n\nmodel &lt;- function(time, stocks, params) {\n  with(as.list(c(stocks, params)), {\n\n    a_prob_contact_sick &lt;- s_sick / (s_healthy + s_sick)\n\n    f_catching_illness &lt;- s_healthy * a_prob_contact_sick *\n                          p_population_interactions * p_prob_catching   # people/month\n    f_recovering    &lt;- s_sick / p_duration_of_illness                # people/month\n\n    ds_healthy_dt &lt;- f_recovering - f_catching_illness\n    ds_sick_dt    &lt;- f_catching_illness - f_recovering\n\n    return(list(c(ds_healthy_dt, ds_sick_dt),\n                catching_illness = f_catching_illness,\n                recovery_rate    = f_recovering))\n  })\n}"
   },
   {
     "objectID": "tut-06-epidemic-sis.html#parameters-and-simulation-time",

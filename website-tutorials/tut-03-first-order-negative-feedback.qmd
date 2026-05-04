@@ -113,6 +113,9 @@ The third example shows a negative feedback structure with the **number of emplo
 #| fig-height: 4
 #| fig-cap: "**distance to goal = number of employees – desired number of employees**"
 
+valve_x <- 5.9
+valve_y <- 3.2
+
 ggplot() +
   # Stock: Number of Employees
   annotate("rect", xmin = 0.5, xmax = 3.8, ymin = 2.7, ymax = 3.7,
@@ -122,33 +125,44 @@ ggplot() +
   annotate("text", x = 2.15, y = 3.2, label = "Number of\nEmployees",
            size = 3.5, fontface = "bold") +
   # Outflow arrow: Firing Rate
-  annotate("segment", x = 3.8, xend = 8.0, y = 3.2, yend = 3.2,
+  annotate("segment", x = 3.8, xend = 8.0, y = valve_y, yend = valve_y,
            linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
-  annotate("text", x = 5.9, y = 3.65, label = "Firing Rate",
+  annotate("point", x = valve_x, y = valve_y, size = 5, colour = "#d45b4e") +
+  annotate("text", x = valve_x, y = 3.65, label = "Firing Rate",
            size = 3.2, colour = "#d45b4e") +
   # Sink cloud
-  geom_polygon(data = make_cloud(8.7, 3.2), aes(x, y),
+  geom_polygon(data = make_cloud(8.7, valve_y), aes(x, y),
                fill = "white", colour = "black", linewidth = 0.7) +
   # Auxiliary: Distance to Goal
-  geom_polygon(data = make_ellipse(4.8, 1.8), aes(x, y),
-               fill = "white", colour = "grey50", linewidth = 0.6) +
-  annotate("text", x = 4.8, y = 1.8, label = "Distance\nto Goal", size = 3.0) +
+  annotate("text", x = 4.8, y = 1.8, label = "Distance\nto Goal", size = 3.0, fontface = "bold") +
   # Parameter: Desired Employees
   annotate("text", x = 2.15, y = 0.9, label = "Desired\nEmployees", size = 3.0) +
   # Parameter: Adjustment Time
   annotate("text", x = 7.8, y = 1.8, label = "Adjustment\nTime", size = 3.0) +
   # Info: Stock → Distance to Goal
-  annotate("segment", x = 2.15, xend = 4.8, y = 2.7, yend = 2.22,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  geom_curve(
+    data = data.frame(x = 2.15, y = 2.7, xend = 4.5, yend = 1.95),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
   # Info: Desired Employees → Distance to Goal
-  annotate("segment", x = 2.15, xend = 3.42, y = 1.12, yend = 1.65,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  geom_curve(
+    data = data.frame(x = 2.15, y = 1.12, xend = 4.2, yend = 1.72),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
   # Info: Distance to Goal → Outflow valve
-  annotate("segment", x = 6.2, xend = 5.9, y = 1.8, yend = 3.1,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  geom_curve(
+    data = data.frame(x = 5.3, y = 1.9, xend = valve_x, yend = valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
   # Info: Adjustment Time → Outflow valve
-  annotate("segment", x = 7.5, xend = 6.1, y = 2.0, yend = 3.1,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  geom_curve(
+    data = data.frame(x = 7.5, y = 2.0, xend = valve_x + 0.2, yend = valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
   # Loop label
   annotate("text", x = 3.2, y = 2.15, label = "B1  (-)", size = 3.8,
            colour = "#c0392b", fontface = "bold") +
@@ -176,6 +190,9 @@ Now we examine the generic structure of negative feedback systems used in all 3 
 #| fig-height: 4
 #| fig-cap: "**Negative feedback generic**"
 
+valve_x <- 5.9
+valve_y <- 3.2
+
 ggplot() +
   # Stock
   annotate("rect", xmin = 0.5, xmax = 3.8, ymin = 2.7, ymax = 3.7,
@@ -185,33 +202,44 @@ ggplot() +
   annotate("text", x = 2.15, y = 3.2, label = "Stock",
            size = 3.5, fontface = "bold") +
   # Outflow arrow: Flow
-  annotate("segment", x = 3.8, xend = 8.0, y = 3.2, yend = 3.2,
+  annotate("segment", x = 3.8, xend = 8.0, y = valve_y, yend = valve_y,
            linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
-  annotate("text", x = 5.9, y = 3.65, label = "Flow",
+  annotate("point", x = valve_x, y = valve_y, size = 5, colour = "#d45b4e") +
+  annotate("text", x = valve_x, y = 3.65, label = "Flow",
            size = 3.2, colour = "#d45b4e") +
   # Sink cloud
-  geom_polygon(data = make_cloud(8.7, 3.2), aes(x, y),
+  geom_polygon(data = make_cloud(8.7, valve_y), aes(x, y),
                fill = "white", colour = "black", linewidth = 0.7) +
   # Auxiliary: Adjustment Gap
-  geom_polygon(data = make_ellipse(4.8, 1.8), aes(x, y),
-               fill = "white", colour = "grey50", linewidth = 0.6) +
-  annotate("text", x = 4.8, y = 1.8, label = "Adjustment\nGap", size = 3.0) +
+  annotate("text", x = 4.8, y = 1.8, label = "Adjustment\nGap", size = 3.0, fontface = "bold") +
   # Parameter: Goal for Stock
   annotate("text", x = 2.15, y = 0.9, label = "Goal for\nStock", size = 3.0) +
   # Parameter: Draining Fraction
   annotate("text", x = 7.8, y = 1.8, label = "Draining\nFraction", size = 3.0) +
   # Info: Stock → Adjustment Gap
-  annotate("segment", x = 2.15, xend = 4.8, y = 2.7, yend = 2.22,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  geom_curve(
+    data = data.frame(x = 2.15, y = 2.7, xend = 4.5, yend = 1.95),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
   # Info: Goal for Stock → Adjustment Gap
-  annotate("segment", x = 2.15, xend = 3.42, y = 1.12, yend = 1.65,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  geom_curve(
+    data = data.frame(x = 2.15, y = 1.12, xend = 4.2, yend = 1.72),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
   # Info: Adjustment Gap → Outflow valve
-  annotate("segment", x = 6.2, xend = 5.9, y = 1.8, yend = 3.1,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  geom_curve(
+    data = data.frame(x = 5.3, y = 1.9, xend = valve_x, yend = valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
   # Info: Draining Fraction → Outflow valve
-  annotate("segment", x = 7.5, xend = 6.1, y = 2.0, yend = 3.1,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  geom_curve(
+    data = data.frame(x = 7.5, y = 2.0, xend = valve_x + 0.2, yend = valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
   # Loop label
   annotate("text", x = 3.2, y = 2.15, label = "B1  (-)", size = 3.8,
            colour = "#c0392b", fontface = "bold") +
