@@ -136,6 +136,89 @@ The `R/` folder is the **single source of truth** for all reusable functions use
   ```
 - **To create a new reusable function** — add it to the relevant file in `R/` first, then source it. Never define a reusable function only inside a `.qmd` chunk or `.R` script.
 
+## SD Stock-and-Flow Diagram Style Guide
+
+These conventions apply to all stock-and-flow diagrams drawn inline in `.qmd` tutorial chunks. Simple first-order diagrams may use the reusable helpers in `R/sd-diagram-functions.R`; complex or unique diagrams (multi-stock, oscillating, epidemic, etc.) are coded inline following this guide.
+
+### Arrow objects (declare once per chunk, before `ggplot()`)
+
+```r
+flow_arrow <- arrow(length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+```
+
+### Valve position variables (declare before `ggplot()`)
+
+Name every valve position explicitly so the flow segment, the valve circle, and all incoming info links reference the same variables:
+
+```r
+cp_valve_x <- 3.5
+cp_valve_y <- 4.0
+```
+
+### Primitives
+
+| Element | How to draw |
+|---------|-------------|
+| Stock | Two nested rects: outer `annotate("rect", linewidth=1.6)` + inner `annotate("rect", fill="#fafaf0", linewidth=0.5)`, inner inset 0.12 units on all sides |
+| Source / sink | `geom_polygon(data = make_cloud(cx, cy), aes(x, y), ...)` |
+| Flow arrow (unidirectional) | `annotate("segment", linewidth=2, colour="#4e8cd4", arrow=flow_arrow)` where `flow_arrow <- arrow(length=unit(0.44,"cm"), type="closed")` |
+| Flow arrow (bi-flow) | Same segment call, but declare `flow_arrow <- arrow(ends="both", length=unit(0.44,"cm"), type="closed")`. Use `ends="both"` **if and only if** the flow can reverse direction (e.g. net flows in oscillating systems). Never add it to a unidirectional inflow or outflow. |
+| Valve | `annotate("point", x=valve_x, y=valve_y, size=5, colour="#4e8cd4")` — placed **after** the flow segment so it renders on top |
+| Auxiliary variable | `annotate("text", ..., fontface = "bold")` — **bold**, no ellipse. Bold distinguishes calculated values from plain parameters. |
+| Parameter | `annotate("text", ...)` — plain text, no ellipse |
+| Info link | `geom_curve(..., arrow=info_arrow)` — use `annotate("segment")` only when elements are so close that a curve cannot render cleanly |
+
+### Content rules
+
+- **Show every auxiliary and parameter** that appears in the model equations — removing ellipses frees enough canvas space to do this without clutter.
+- **Info links use `geom_curve` throughout** as the default. Straight segments are the exception: use `annotate("segment")` only when elements are stacked directly above/below each other (e.g. a vertical auxiliary chain) where a curve cannot render cleanly.
+- **Never draw an arrow through text.** When an info link terminates near a flow label, stop the arrowhead at the near edge of the label — not at the valve centre. If the arrow approaches from above, set `yend` to just above the label top; if from below, set `yend` to just below the label bottom. Apply the same logic for any other text the arrow path would cross.
+
+### Single-stock S-shaped growth layout
+
+Reference implementation: `sd-model-practice-scripts/s1_rabbit_diagram.R` and `website-tutorials/tut-05-s-shaped-growth.qmd`.
+
+**Canvas:** `fig-width=9`, `fig-height=4.5`, `xlim=c(0,11)`, `ylim=c(0.3,5.1)`
+
+**Horizontal flow line at `y=4`:** source cloud → inflow → stock → outflow → sink cloud.
+Stock: `xmin=3.85`, `xmax=7.15`, center `(5.5, 4.0)`. Two named valve variable pairs:
+
+```r
+births_valve_x <- 2.55;  births_valve_y <- 4.0
+deaths_valve_x <- 8.45;  deaths_valve_y <- 4.0
+```
+
+**Vertical auxiliary chain at `x=5.5`**, descending below the stock:
+
+| y    | Element |
+|------|---------|
+| 2.75 | `population density` (bold) |
+| 1.85 | `normalized density` (bold) |
+| 0.95 | `deaths multiplier` (bold) |
+| 0.62 | `(empirical lookup)` — italic, `colour="grey40"`, `size=2.5` |
+
+Links along the vertical chain use `annotate("segment")` (straight), not `geom_curve`, because the elements are stacked directly above each other.
+
+**Parameters** — plain text, positioned to avoid the chain:
+
+| Label | Position | Info link to |
+|-------|----------|--------------|
+| `births normal` | `(1.5, 2.6)` | births valve — `geom_curve(curvature=-0.3)` |
+| `average lifetime` | `(9.1, 2.6)` | deaths valve — `geom_curve(curvature=0.3)` |
+| `area` | `(2.9, 2.15)` | population density — `geom_curve(curvature=-0.2)` |
+| `normal pop density` | `(2.9, 1.3)` | normalized density — `geom_curve(curvature=-0.2)` |
+
+**Loop labels:** R1 (+) at `(2.7, 2.9)` green; B1 (−) at `(9.3, 2.1)` red.
+
+### Figure sizing
+
+`fig-height` and `ylim` span must scale together. When the `ylim` range changes, scale `fig-height` proportionally to preserve element proportions:
+
+```
+new_fig_height = old_fig_height × (new_ylim_span / old_ylim_span)
+```
+
 ## Variable Naming Convention (R scripts)
 
 Prefix all variables by type so the model structure is self-documenting:

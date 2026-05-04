@@ -92,58 +92,104 @@ make_cloud <- function(cx, cy, w = 0.45, h = 0.28) {
   bump  <- 1 + 0.12 * sin(8 * theta)
   tibble(x = cx + w * bump * cos(theta), y = cy + h * bump * sin(theta))
 }
-make_ellipse <- function(cx, cy, rx = 1.6, ry = 0.35) {
-  theta <- seq(0, 2 * pi, length.out = 100)
-  tibble(x = cx + rx * cos(theta), y = cy + ry * sin(theta))
-}
 flow_arrow <- arrow(length = unit(0.44, "cm"), type = "closed")
 info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
 
+births_valve_x <- 2.55
+births_valve_y <- 4.0
+deaths_valve_x <- 8.45
+deaths_valve_y <- 4.0
+
 ggplot() +
-  # births flow
-  geom_polygon(data = make_cloud(0.75, 4), aes(x, y),
+  # Source cloud
+  geom_polygon(data = make_cloud(0.75, births_valve_y), aes(x, y),
                fill = "white", colour = "black", linewidth = 0.7) +
-  annotate("segment", x = 1.2, xend = 3.85, y = 4, yend = 4,
+  # Births inflow
+  annotate("segment", x = 1.2, xend = 3.85, y = births_valve_y, yend = births_valve_y,
            linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
-  annotate("text", x = 2.55, y = 4.32, label = "births", size = 3.2, colour = "#4e8cd4") +
-  # stock: double border
+  annotate("point", x = births_valve_x, y = births_valve_y, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = births_valve_x, y = 4.38, label = "births",
+           size = 3.2, colour = "#4e8cd4") +
+  # Stock
   annotate("rect", xmin = 3.85, xmax = 7.15, ymin = 3.45, ymax = 4.55,
            fill = "white", colour = "black", linewidth = 1.6) +
   annotate("rect", xmin = 3.97, xmax = 7.03, ymin = 3.57, ymax = 4.43,
            fill = "#fafaf0", colour = "black", linewidth = 0.5) +
-  annotate("text", x = 5.5, y = 4, label = "rabbit population", size = 3.5, fontface = "bold") +
-  # deaths flow
-  annotate("segment", x = 7.15, xend = 9.8, y = 4, yend = 4,
+  annotate("text", x = 5.5, y = 4.0, label = "rabbit population",
+           size = 3.5, fontface = "bold") +
+  # Deaths outflow
+  annotate("segment", x = 7.15, xend = 9.8, y = deaths_valve_y, yend = deaths_valve_y,
            linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
-  annotate("text", x = 8.45, y = 4.32, label = "deaths", size = 3.2, colour = "#d45b4e") +
-  geom_polygon(data = make_cloud(10.25, 4), aes(x, y),
+  annotate("point", x = deaths_valve_x, y = deaths_valve_y, size = 5, colour = "#d45b4e") +
+  annotate("text", x = deaths_valve_x, y = 4.38, label = "deaths",
+           size = 3.2, colour = "#d45b4e") +
+  # Sink cloud
+  geom_polygon(data = make_cloud(10.25, deaths_valve_y), aes(x, y),
                fill = "white", colour = "black", linewidth = 0.7) +
-  # info: stock → normalized density (arrives at top of ellipse: cy + ry = 2.38 + 0.35)
-  annotate("segment", x = 5.5, xend = 5.5, y = 3.45, yend = 2.73,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
-  geom_polygon(data = make_ellipse(5.5, 2.38), aes(x, y),
-               fill = "white", colour = "grey50", linewidth = 0.6) +
-  annotate("text", x = 5.5, y = 2.38, label = "population density", size = 3) +
-  # info: normalized density → deaths multiplier (leaves bottom: 2.38-0.35, arrives top: 1.05+0.35)
-  annotate("segment", x = 5.5, xend = 5.5, y = 2.03, yend = 1.40,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
-  geom_polygon(data = make_ellipse(5.5, 1.05), aes(x, y),
-               fill = "white", colour = "grey50", linewidth = 0.6) +
-  annotate("text", x = 5.5, y = 1.15, label = "survival pressure", size = 3) +
-  annotate("text", x = 5.5, y = 0.88, label = "(empirical lookup)", size = 2.5,
-           colour = "grey40", fontface = "italic") +
-  # info: deaths multiplier → deaths flow (leaves right edge: cx + rx = 5.5 + 1.6)
-  # curvature flipped to +0.28 so arc bows rightward, making the B1 loop more apparent
-  geom_curve(aes(x = 7.1, y = 1.05, xend = 8.45, yend = 3.72),
-             curvature = 0.28, linetype = "solid", colour = "grey40",
-             arrow = info_arrow) +
-  # info: stock → births (R1 positive feedback, leaves bottom of stock)
-  # curvature flipped to -0.38 so arc bows upward, making the R1 loop more apparent
-  geom_curve(aes(x = 4.5, y = 3.45, xend = 1.9, yend = 3.72),
-             curvature = -0.38, linetype = "solid", colour = "grey40",
-             arrow = info_arrow) +
-  # loop labels
-  annotate("text", x = 2.6, y = 2.9, label = "R1  (+)", size = 3.8,
+
+  # Auxiliary chain (bold — calculated values)
+  annotate("text", x = 5.5, y = 2.75, label = "population\ndensity",
+           size = 3.0, fontface = "bold") +
+  annotate("text", x = 5.5, y = 1.85, label = "normalized\ndensity",
+           size = 3.0, fontface = "bold") +
+  annotate("text", x = 5.5, y = 0.95, label = "deaths\nmultiplier",
+           size = 3.0, fontface = "bold") +
+  annotate("text", x = 5.5, y = 0.62, label = "(empirical lookup)",
+           size = 2.5, colour = "grey40", fontface = "italic") +
+
+  # Parameters (plain text)
+  annotate("text", x = 1.5, y = 2.6,  label = "births\nnormal",     size = 3.0) +
+  annotate("text", x = 9.1, y = 2.6,  label = "average\nlifetime",  size = 3.0) +
+  annotate("text", x = 2.9, y = 2.15, label = "area",               size = 3.0) +
+  annotate("text", x = 2.9, y = 1.3,  label = "normal pop\ndensity", size = 3.0) +
+
+  # Info: vertical chain (straight segments — elements stacked directly above each other)
+  annotate("segment", x = 5.5, xend = 5.5, y = 3.45, yend = 2.98,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+  annotate("segment", x = 5.5, xend = 5.5, y = 2.52, yend = 2.08,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+  annotate("segment", x = 5.5, xend = 5.5, y = 1.62, yend = 1.18,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+
+  # Info: area → population density
+  geom_curve(
+    data = data.frame(x = 3.2, y = 2.15, xend = 4.7, yend = 2.65),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: normal pop density → normalized density
+  geom_curve(
+    data = data.frame(x = 3.2, y = 1.35, xend = 4.7, yend = 1.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: deaths multiplier → deaths valve (B1 balancing loop)
+  geom_curve(
+    data = data.frame(x = 6.3, y = 0.95, xend = deaths_valve_x, yend = deaths_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → births valve (R1 reinforcing loop)
+  geom_curve(
+    data = data.frame(x = 4.5, y = 3.45, xend = 2.1, yend = births_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: births normal → births valve
+  geom_curve(
+    data = data.frame(x = 1.9, y = 2.6, xend = births_valve_x - 0.1, yend = births_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: average lifetime → deaths valve
+  geom_curve(
+    data = data.frame(x = 8.8, y = 2.6, xend = deaths_valve_x + 0.1, yend = deaths_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+
+  # Loop labels
+  annotate("text", x = 2.7, y = 2.9, label = "R1  (+)", size = 3.8,
            colour = "#27ae60", fontface = "bold") +
   annotate("text", x = 9.3, y = 2.1, label = "B1  (−)", size = 3.8,
            colour = "#c0392b", fontface = "bold") +
@@ -276,57 +322,98 @@ make_cloud <- function(cx, cy, w = 0.45, h = 0.28) {
   bump  <- 1 + 0.12 * sin(8 * theta)
   tibble(x = cx + w * bump * cos(theta), y = cy + h * bump * sin(theta))
 }
-make_ellipse <- function(cx, cy, rx = 1.6, ry = 0.35) {
-  theta <- seq(0, 2 * pi, length.out = 100)
-  tibble(x = cx + rx * cos(theta), y = cy + ry * sin(theta))
-}
 flow_arrow <- arrow(length = unit(0.44, "cm"), type = "closed")
 info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
 
+births_valve_x <- 2.55
+births_valve_y <- 4.0
+deaths_valve_x <- 8.45
+deaths_valve_y <- 4.0
+
 ggplot() +
-  # ── births flow ────────────────────────────────────────────────────────────
-  geom_polygon(data = make_cloud(0.75, 4.0), aes(x, y),
+  # Source cloud
+  geom_polygon(data = make_cloud(0.75, births_valve_y), aes(x, y),
                fill = "white", colour = "black", linewidth = 0.7) +
-  annotate("segment", x = 1.2, xend = 3.85, y = 4.0, yend = 4.0,
+  # Births inflow
+  annotate("segment", x = 1.2, xend = 3.85, y = births_valve_y, yend = births_valve_y,
            linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
-  annotate("text", x = 2.55, y = 4.32, label = "births", size = 3.2, colour = "#4e8cd4") +
-  # ── rabbit population stock ────────────────────────────────────────────────
+  annotate("point", x = births_valve_x, y = births_valve_y, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = births_valve_x, y = 4.38, label = "births",
+           size = 3.2, colour = "#4e8cd4") +
+  # Stock
   annotate("rect", xmin = 3.85, xmax = 7.15, ymin = 3.45, ymax = 4.55,
            fill = "white", colour = "black", linewidth = 1.6) +
   annotate("rect", xmin = 3.97, xmax = 7.03, ymin = 3.57, ymax = 4.43,
            fill = "#fafaf0", colour = "black", linewidth = 0.5) +
-  annotate("text", x = 5.5, y = 4.0, label = "rabbit population", size = 3.5, fontface = "bold") +
-  # ── deaths flow ────────────────────────────────────────────────────────────
-  annotate("segment", x = 7.15, xend = 9.8, y = 4.0, yend = 4.0,
+  annotate("text", x = 5.5, y = 4.0, label = "rabbit population",
+           size = 3.5, fontface = "bold") +
+  # Deaths outflow
+  annotate("segment", x = 7.15, xend = 9.8, y = deaths_valve_y, yend = deaths_valve_y,
            linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
-  annotate("text", x = 8.45, y = 4.32, label = "deaths", size = 3.2, colour = "#d45b4e") +
-  geom_polygon(data = make_cloud(10.25, 4.0), aes(x, y),
+  annotate("point", x = deaths_valve_x, y = deaths_valve_y, size = 5, colour = "#d45b4e") +
+  annotate("text", x = deaths_valve_x, y = 4.38, label = "deaths",
+           size = 3.2, colour = "#d45b4e") +
+  # Sink cloud
+  geom_polygon(data = make_cloud(10.25, deaths_valve_y), aes(x, y),
                fill = "white", colour = "black", linewidth = 0.7) +
-  # ── food per rabbit auxiliary ──────────────────────────────────────────────
-  geom_polygon(data = make_ellipse(5.5, 2.0), aes(x, y),
-               fill = "white", colour = "grey50", linewidth = 0.6) +
-  annotate("text", x = 5.5, y = 2.0, label = "food per rabbit", size = 3) +
-  # ── food supply (p_replenishment) — outside the loop ──────────────────────
-  geom_polygon(data = make_ellipse(2.0, 2.0, rx = 1.2), aes(x, y),
-               fill = "white", colour = "grey50", linewidth = 0.6) +
-  annotate("text", x = 2.0, y = 2.12, label = "food supply", size = 2.8) +
-  annotate("text", x = 2.0, y = 1.85, label = "(p_replenishment)", size = 2.3,
-           colour = "grey40", fontface = "italic") +
-  # ── information links ──────────────────────────────────────────────────────
-  # rabbit pop bottom → food per rabbit top (B1: more rabbits, less food each)
-  annotate("segment", x = 5.5, xend = 5.5, y = 3.45, yend = 2.35,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
-  # food supply → food per rabbit (external input, not in loop)
-  annotate("segment", x = 3.2, xend = 3.9, y = 2.0, yend = 2.0,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
-  # food per rabbit right → deaths (B1 arc, bows rightward)
-  geom_curve(aes(x = 7.1, y = 2.0, xend = 8.45, yend = 3.72),
-             curvature = 0.3, linetype = "solid", colour = "grey40", arrow = info_arrow) +
-  # rabbit pop bottom-left → births (R1 arc, bows upward)
-  geom_curve(aes(x = 4.5, y = 3.45, xend = 1.9, yend = 3.72),
-             curvature = -0.38, linetype = "solid", colour = "grey40", arrow = info_arrow) +
-  # ── loop labels ────────────────────────────────────────────────────────────
-  annotate("text", x = 2.6, y = 2.9, label = "R1  (+)", size = 3.8,
+
+  # Auxiliary chain (bold — calculated values)
+  annotate("text", x = 5.5, y = 2.75, label = "food per\nrabbit",
+           size = 3.0, fontface = "bold") +
+  annotate("text", x = 5.5, y = 1.85, label = "normalized\nnutrition",
+           size = 3.0, fontface = "bold") +
+
+  # Parameters (plain text)
+  annotate("text", x = 1.5, y = 2.6,  label = "births\nnormal",    size = 3.0) +
+  annotate("text", x = 9.1, y = 2.6,  label = "average\nlifetime", size = 3.0) +
+  annotate("text", x = 2.9, y = 2.75, label = "food\nsupply",      size = 3.0) +
+  annotate("text", x = 2.9, y = 1.85, label = "rabbit\nappetite",  size = 3.0) +
+
+  # Info: vertical chain (straight — elements stacked directly above each other)
+  annotate("segment", x = 5.5, xend = 5.5, y = 3.45, yend = 2.98,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+  annotate("segment", x = 5.5, xend = 5.5, y = 2.52, yend = 2.08,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+
+  # Info: food supply → food per rabbit
+  geom_curve(
+    data = data.frame(x = 3.2, y = 2.75, xend = 4.7, yend = 2.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: rabbit appetite → normalized nutrition
+  geom_curve(
+    data = data.frame(x = 3.2, y = 1.85, xend = 4.7, yend = 1.85),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: normalized nutrition → deaths valve (B1 balancing loop)
+  geom_curve(
+    data = data.frame(x = 6.3, y = 1.85, xend = deaths_valve_x, yend = deaths_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → births valve (R1 reinforcing loop)
+  geom_curve(
+    data = data.frame(x = 4.5, y = 3.45, xend = 2.1, yend = births_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: births normal → births valve
+  geom_curve(
+    data = data.frame(x = 1.9, y = 2.6, xend = births_valve_x - 0.1, yend = births_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: average lifetime → deaths valve
+  geom_curve(
+    data = data.frame(x = 8.8, y = 2.6, xend = deaths_valve_x + 0.1, yend = deaths_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+
+  # Loop labels
+  annotate("text", x = 2.7, y = 2.9, label = "R1  (+)", size = 3.8,
            colour = "#27ae60", fontface = "bold") +
   annotate("text", x = 9.3, y = 2.1, label = "B1  (−)", size = 3.8,
            colour = "#c0392b", fontface = "bold") +

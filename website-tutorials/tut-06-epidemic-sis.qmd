@@ -60,59 +60,98 @@ Two flows connect them in opposing directions:
 #| echo: false
 #| fig-align: center
 #| fig-width: 8
-#| fig-height: 4.5
+#| fig-height: 5.0
 
 flow_arrow <- arrow(length = unit(0.44, "cm"), type = "closed")
-info_arrow <- arrow(length = unit(0.32, "cm"), type = "open")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+
+catching_valve_x  <- 5.5
+catching_valve_y  <- 3.28
+recovering_valve_x <- 5.5
+recovering_valve_y <- 2.72
 
 ggplot() +
-  # Healthy People stock
+  # ── Flows ──────────────────────────────────────────────────────────────────
+  annotate("segment", x = 4.3, xend = 6.7,
+           y = catching_valve_y, yend = catching_valve_y,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("segment", x = 6.7, xend = 4.3,
+           y = recovering_valve_y, yend = recovering_valve_y,
+           linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
+
+  # ── Info links: vertical chain (straight, stacked directly above catching) ─
+  # prob. contact with sick → catching illness
+  annotate("segment", x = 5.5, xend = 5.5, y = 4.88, yend = 3.90,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+  
+  # ── Info links: curved ─────────────────────────────────────────────────────
+  # Healthy People → total population
+  geom_curve(
+    data = data.frame(x = 2.3, y = 3.5, xend = 4.5, yend = 5.08),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Sick People → prob. contact with sick (direct: sick is the numerator)
+  geom_curve(
+    data = data.frame(x = 8.7, y = 3.5, xend = 6.5, yend = 5.08),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # population interactions → catching valve
+  geom_curve(
+    data = data.frame(x = 1.9, y = 5.05, xend = 5.3, yend = 3.90),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # prob. catching → catching valve
+  geom_curve(
+    data = data.frame(x = 9.1, y = 5.05, xend = 5.7, yend = 3.90),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.35, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # duration of illness → recovering valve (straight, stacked directly below)
+  annotate("segment", x = 5.5, xend = 5.5, y = 1.82, yend = 2.2,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+
+  # ── Stocks ─────────────────────────────────────────────────────────────────
   annotate("rect", xmin = 0.3, xmax = 4.3, ymin = 2.5, ymax = 3.5,
            fill = "white", colour = "black", linewidth = 1.6) +
   annotate("rect", xmin = 0.42, xmax = 4.18, ymin = 2.62, ymax = 3.38,
            fill = "#fafaf0", colour = "black", linewidth = 0.5) +
-  annotate("text", x = 2.3, y = 3.0, label = "Healthy\nPeople",
-           size = 3.5, fontface = "bold") +
-  # Sick People stock
   annotate("rect", xmin = 6.7, xmax = 10.7, ymin = 2.5, ymax = 3.5,
            fill = "white", colour = "black", linewidth = 1.6) +
   annotate("rect", xmin = 6.82, xmax = 10.58, ymin = 2.62, ymax = 3.38,
            fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+
+  # ── Valve circles (rendered after flow segments, before text) ──────────────
+  annotate("point", x = catching_valve_x,   y = catching_valve_y,   size = 5, colour = "#4e8cd4") +
+  annotate("point", x = recovering_valve_x, y = recovering_valve_y, size = 5, colour = "#d45b4e") +
+
+  # ── Text (rendered last, on top of all geometry) ───────────────────────────
+  # Stock labels
+  annotate("text", x = 2.3, y = 3.0, label = "Healthy\nPeople",
+           size = 3.5, fontface = "bold") +
   annotate("text", x = 8.7, y = 3.0, label = "Sick\nPeople",
            size = 3.5, fontface = "bold") +
-  # Catching Illness flow (rightward, blue)
-  annotate("segment", x = 4.3, xend = 6.7, y = 3.28, yend = 3.28,
-           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
-  annotate("text", x = 5.5, y = 3.68, label = "Catching\nIllness",
+  # Flow labels
+  annotate("text", x = catching_valve_x,   y = 3.65, label = "Catching\nIllness",
            size = 3.2, colour = "#4e8cd4") +
-  # Recovering flow (leftward, red)
-  annotate("segment", x = 6.7, xend = 4.3, y = 2.72, yend = 2.72,
-           linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
-  annotate("text", x = 5.5, y = 2.42, label = "Recovering",
+  annotate("text", x = recovering_valve_x, y = 2.38, label = "Recovering",
            size = 3.2, colour = "#d45b4e") +
-  # Auxiliary: prob. contact with sick (top centre, above Catching Illness)
-  geom_polygon(data = make_ellipse(5.5, 4.65, rx = 1.6, ry = 0.42), aes(x, y),
-               fill = "white", colour = "grey50", linewidth = 0.6) +
-  annotate("text", x = 5.5, y = 4.65, label = "prob. contact\nwith sick",
-           size = 3.0) +
-  # Info: Healthy People → prob. contact with sick (curved up and right)
-  geom_curve(aes(x = 2.3, y = 3.5, xend = 3.9, yend = 4.65),
-             curvature = -0.3, linetype = "solid", colour = "grey40",
-             arrow = info_arrow) +
-  # Info: Sick People → prob. contact with sick (curved up and left)
-  geom_curve(aes(x = 8.7, y = 3.5, xend = 7.1, yend = 4.65),
-             curvature = 0.3, linetype = "solid", colour = "grey40",
-             arrow = info_arrow) +
-  # Info: prob. contact with sick → Catching Illness (straight down)
-  annotate("segment", x = 5.5, xend = 5.5, y = 4.23, yend = 3.9,
-           linetype = "solid", colour = "grey40", arrow = info_arrow) +
+  # Auxiliaries (bold — calculated values)
+  annotate("text", x = 5.5, y = 5.2, label = "prob. contact\nwith sick",
+           size = 3.0, fontface = "bold") +
+  # Parameters (plain text)
+  annotate("text", x = 1.5,  y = 5.05, label = "population\ninteractions", size = 3.0) +
+  annotate("text", x = 9.5,  y = 5.05, label = "prob.\ncatching",          size = 3.0) +
+  annotate("text", x = 5.5,  y = 1.6,  label = "duration of\nillness",     size = 3.0) +
   # Loop labels
-  annotate("text", x = 2.5, y = 4.65, label = "B1  (-)", size = 3.8,
+  annotate("text", x = 1.5, y = 4.2, label = "B1  (−)", size = 3.8,
            colour = "#c0392b", fontface = "bold") +
-  annotate("text", x = 8.7, y = 4.65, label = "R1  (+)", size = 3.8,
+  annotate("text", x = 9.5, y = 4.2, label = "R1  (+)", size = 3.8,
            colour = "#27ae60", fontface = "bold") +
   theme_void() +
-  coord_cartesian(xlim = c(0, 11), ylim = c(0.3, 5.2)) +
+  coord_cartesian(xlim = c(0, 11), ylim = c(0.3, 5.7)) +
   labs(title = "SIS Epidemic — stock-and-flow diagram")
 ```
 
@@ -156,8 +195,7 @@ Note that `total population = Healthy + Sick` is conserved — the model has no 
 model <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
-    a_total_population  <- s_healthy + s_sick
-    a_prob_contact_sick <- s_sick / a_total_population
+    a_prob_contact_sick <- s_sick / (s_healthy + s_sick)
 
     f_catching_illness <- s_healthy * a_prob_contact_sick *
                           p_population_interactions * p_prob_catching   # people/month
