@@ -3,8 +3,6 @@ title: "System Dynamics Tutorials"
 subtitle: "A data science reboot of MIT's Road Maps self-study series"
 ---
 
-These tutorials replicate examples from the **MIT System Dynamics in Education Project** Road Maps series (supervised by Jay W. Forrester), implemented in R using `deSolve` and `tidyverse`.
-
 ## Acknowledgement
 
 These tutorials derive from the [Road Maps](https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/) curriculum, developed by the System Dynamics in Education Project (SDEP) at MIT under the direction of Professor Jay Forrester. With the rapid growth of data science, the purpose of this series is to place the power of SD in the hands of a new generation of analysts and data scientists through supplementary tutorials and reproducible code in R. Personal thanks to Lees Stutz of the [Creative Learning Exchange](http://www.clexchange.org/) (CLE) for introducing me to the Road Maps curriculum and supporting my own SD journey.
