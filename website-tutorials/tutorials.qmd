@@ -11,12 +11,12 @@ These tutorials derive from the [Road Maps](https://ocw.mit.edu/courses/sloan-sc
 
 ## Tutorials
 
-| # | Title | Key concept |
-|---|-------|-------------|
-| [1](tut-01-first-order-positive-feedback.qmd) | First-Order Positive Feedback | Exponential growth |
-| [2](tut-02-first-order-positive-feedback-behavior.qmd) | Behavior of Positive Feedback Systems | Sensitivity analysis |
-| [3](tut-03-first-order-negative-feedback.qmd) | First-Order Negative Feedback | Goal-seeking / exponential decay |
-| [4](tut-04-closing-the-gap.qmd) | Closing the Gap | Asymptotic growth and decay |
-| [5](tut-05-s-shaped-growth.qmd) | S-Shaped Growth | Combined positive and negative feedback |
-| [6](tut-06-epidemic-sis.qmd) | S-Shaped Growth — SIS Epidemic | Two-stock epidemic structure; product-driven nonlinearity |
-| [7](tut-07-oscillation-pendulum.qmd) | Sustained Oscillation — The Pendulum | Two-stock cross-coupled structure; RK4 integration |
+| Tutorial | Key concept |
+|----------|-------------|
+| [First-Order Positive Feedback](tut-01-first-order-positive-feedback.qmd) | Exponential growth |
+| [Behavior of Positive Feedback Systems](tut-02-first-order-positive-feedback-behavior.qmd) | Sensitivity analysis |
+| [First-Order Negative Feedback](tut-03-first-order-negative-feedback.qmd) | Goal-seeking / exponential decay |
+| [Closing the Gap](tut-04-closing-the-gap.qmd) | Asymptotic growth and decay |
+| [S-Shaped Growth](tut-05-s-shaped-growth.qmd) | Combined positive and negative feedback |
+| [S-Shaped Growth — SIS Epidemic](tut-06-epidemic-sis.qmd) | Two-stock epidemic structure; product-driven nonlinearity |
+| [Sustained Oscillation — The Pendulum](tut-07-oscillation-pendulum.qmd) | Two-stock cross-coupled structure; RK4 integration |

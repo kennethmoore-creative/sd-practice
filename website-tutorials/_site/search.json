@@ -18,7 +18,7 @@
     "href": "tutorials.html#tutorials",
     "title": "System Dynamics Tutorials",
     "section": "Tutorials",
-    "text": "Tutorials\n\n\n\n#\nTitle\nKey concept\n\n\n\n\n1\nFirst-Order Positive Feedback\nExponential growth\n\n\n2\nBehavior of Positive Feedback Systems\nSensitivity analysis\n\n\n3\nFirst-Order Negative Feedback\nGoal-seeking / exponential decay\n\n\n4\nClosing the Gap\nAsymptotic growth and decay\n\n\n5\nS-Shaped Growth\nCombined positive and negative feedback\n\n\n6\nS-Shaped Growth — SIS Epidemic\nTwo-stock epidemic structure; product-driven nonlinearity\n\n\n7\nSustained Oscillation — The Pendulum\nTwo-stock cross-coupled structure; RK4 integration"
+    "text": "Tutorials\n\n\n\nTutorial\nKey concept\n\n\n\n\nFirst-Order Positive Feedback\nExponential growth\n\n\nBehavior of Positive Feedback Systems\nSensitivity analysis\n\n\nFirst-Order Negative Feedback\nGoal-seeking / exponential decay\n\n\nClosing the Gap\nAsymptotic growth and decay\n\n\nS-Shaped Growth\nCombined positive and negative feedback\n\n\nS-Shaped Growth — SIS Epidemic\nTwo-stock epidemic structure; product-driven nonlinearity\n\n\nSustained Oscillation — The Pendulum\nTwo-stock cross-coupled structure; RK4 integration"
   },
   {
     "objectID": "tut-06-epidemic-sis.html",
