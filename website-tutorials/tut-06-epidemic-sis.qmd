@@ -29,11 +29,6 @@ library(deSolve)
 library(tidyverse)
 ```
 
-# Acknowledgement
-
-The core content behind this tutorial derives from the [Road Maps](https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/) curriculum, developed by the System Dynamics in Education Project (SDEP) at MIT under the direction of Professor Jay Forrester.
-
-Source material for this tutorial comes from [Generic Structures: S-Shaped Growth I](https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/) (D-4432-2), Section: S-Shaped Growth Structure 2.
 
 # S-Shaped Growth Is a Behaviour, Not a Structure
 

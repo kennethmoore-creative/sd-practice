@@ -30,11 +30,6 @@ library(deSolve)
 library(tidyverse)
 ```
 
-# Acknowledgement
-The core content behind this tutorial derives from the [Road Maps](https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/) curriculum, developed by the System Dynamics in Education Project (SDEP) at MIT under the direction of Professor Jay Forrester. I'd like to give a personal thanks to Lees Stutz of the [Creative Learning Exchange](http://www.clexchange.org/) (CLE) for introducing me to the Road Maps curriculum, and for supporting my own SD journey.
-
-
-With the rapid growth of data science, the purpose of this tutorial is to place the power of SD in the hands of a new generation of analysts and data scientists by including supplementary tutorials and reproducible code in R. Source material for this tutorial comes from [Generic Structures: First order positive feedback loops](https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/genericpositive.pdf)
 
 # Generic structure system behavior
 

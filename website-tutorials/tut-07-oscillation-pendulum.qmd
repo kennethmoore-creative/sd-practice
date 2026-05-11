@@ -13,9 +13,6 @@ library(tidyverse)
 source("../R/sd-diagram-functions.R")
 ```
 
-## Acknowledgement
-
-This tutorial is based on Chapter 6 of the MIT Road Maps series: *Generic Structures in Oscillating Systems* (D-4426-3), part of the System Dynamics in Education Project supervised by Jay W. Forrester.
 
 ---
 

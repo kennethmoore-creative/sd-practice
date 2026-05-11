@@ -42,6 +42,7 @@ vignettes/*.pdf
 
 # Knitted output and binary assets
 *.html
+!website-tutorials/index.html
 *.pdf
 *.jpg
 *.jpeg

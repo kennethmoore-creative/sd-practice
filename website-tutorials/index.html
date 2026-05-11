@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ken Moore — Data · Analytics · Education</title>
+  <meta name="description" content="Ken Moore — data scientist and educator offering analytics consulting and education services internationally. Tutorials, publications, and professional services.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:        #1e3a5f;
+      --navy-dark:   #14293f;
+      --amber:       #c9903a;
+      --amber-light: #dba84a;
+      --white:       #ffffff;
+      --off-white:   #f7f9fc;
+      --gray-light:  #edf2f7;
+      --gray-mid:    #a0aec0;
+      --text:        #2d3748;
+      --text-light:  #4a5568;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.6;
+    }
+
+    /* ─── Navigation ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(20, 41, 63, 0.96);
+      backdrop-filter: blur(8px);
+      height: 64px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: white;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--amber-light); }
+
+    /* ─── Hero ─── */
+    .hero {
+      min-height: 100vh;
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      padding: 80px 6% 60px;
+    }
+
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 70px;
+      align-items: center;
+    }
+
+    .hero-tagline {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--amber-light);
+      margin-bottom: 1rem;
+    }
+
+    .hero-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 5vw, 4.2rem);
+      color: white;
+      line-height: 1.08;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.7);
+      max-width: 460px;
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.75rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--amber-light);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(201,144,58,0.35);
+    }
+
+    .btn-outline {
+      border: 2px solid rgba(255,255,255,0.45);
+      color: white;
+    }
+    .btn-outline:hover {
+      border-color: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.07);
+    }
+
+    .btn-outline-dark {
+      border: 2px solid var(--navy);
+      color: var(--navy);
+    }
+    .btn-outline-dark:hover {
+      background: var(--navy);
+      color: white;
+    }
+
+    .hero-photo img {
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 4/5;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 3px solid rgba(255,255,255,0.12);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+      display: block;
+    }
+
+    /* ─── Section shell ─── */
+    section { padding: 96px 6%; }
+
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 0.6rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      color: var(--navy);
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── About ─── */
+    #about { background: var(--white); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 70px;
+      align-items: start;
+    }
+
+    .about-label-col { padding-top: 0.2rem; }
+
+    .about-text p {
+      color: var(--text-light);
+      font-size: 1.02rem;
+      line-height: 1.8;
+      margin-bottom: 1.2rem;
+    }
+
+    .about-tags {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-top: 1.75rem;
+    }
+
+    .tag {
+      background: var(--gray-light);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.3rem 0.85rem;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    /* ─── Services ─── */
+    #services { background: var(--off-white); }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-top: 2.5rem;
+    }
+
+    .service-card {
+      background: white;
+      border-radius: 8px;
+      padding: 2.25rem 2.5rem;
+      border-top: 4px solid var(--navy);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+
+    .service-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      color: var(--navy);
+      margin-bottom: 0.9rem;
+    }
+
+    .service-card p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      line-height: 1.75;
+    }
+
+    /* ─── Tutorials ─── */
+    #tutorials { background: var(--white); }
+
+    .tutorials-intro {
+      color: var(--text-light);
+      font-size: 1.02rem;
+      max-width: 580px;
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+    }
+
+    .tutorial-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .tutorial-card {
+      border: 1.5px solid var(--gray-light);
+      border-radius: 6px;
+      padding: 1.4rem 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      display: block;
+    }
+
+    .tutorial-card:hover {
+      border-color: var(--amber);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+
+    .tutorial-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .tutorial-card h4 {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 0.35rem;
+      line-height: 1.35;
+    }
+
+    .tutorial-card p {
+      font-size: 0.8rem;
+      color: var(--gray-mid);
+    }
+
+    .tutorials-footer {
+      margin-top: 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .tutorials-more {
+      font-size: 0.88rem;
+      color: var(--gray-mid);
+      font-style: italic;
+    }
+
+    /* ─── Works ─── */
+    #works { background: var(--navy); }
+
+    #works .section-label { color: var(--amber-light); }
+    #works .section-title { color: white; }
+
+    .work-feature {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 50px;
+      align-items: center;
+      margin-top: 2.5rem;
+    }
+
+    .book-cover-placeholder {
+      width: 160px;
+      height: 210px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 1rem;
+      flex-shrink: 0;
+    }
+
+    .work-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: white;
+      line-height: 1.3;
+      margin-bottom: 0.9rem;
+    }
+
+    .work-desc {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.95rem;
+      line-height: 1.75;
+      max-width: 520px;
+      margin-bottom: 1.75rem;
+    }
+
+    .work-links { display: flex; gap: 1rem; }
+
+    /* ─── Contact ─── */
+    #contact {
+      background: var(--off-white);
+      text-align: center;
+    }
+
+    #contact .section-inner {
+      max-width: 600px;
+    }
+
+    #contact .section-title { margin-bottom: 0.75rem; }
+
+    .contact-sub {
+      color: var(--text-light);
+      font-size: 1rem;
+      line-height: 1.75;
+      margin-bottom: 2rem;
+    }
+
+    .contact-email {
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--navy);
+      text-decoration: none;
+      border-bottom: 2px solid var(--amber);
+      padding-bottom: 2px;
+      transition: color 0.2s;
+    }
+
+    .contact-email:hover { color: var(--amber); }
+
+    .social-links {
+      display: flex;
+      gap: 1.25rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    .social-link {
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-bottom: 1px solid var(--gray-mid);
+      padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .social-link:hover {
+      color: var(--navy);
+      border-color: var(--navy);
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      background: var(--navy-dark);
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 900px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .hero-photo { display: flex; justify-content: center; order: -1; }
+      .hero-photo img { max-width: 240px; }
+      .hero-buttons { justify-content: center; }
+      .hero-sub { margin-left: auto; margin-right: auto; }
+      .about-grid { grid-template-columns: 1fr; gap: 0; }
+      .about-label-col { margin-bottom: 1.5rem; }
+      .services-grid { grid-template-columns: 1fr; }
+      .tutorial-grid { grid-template-columns: 1fr 1fr; }
+      .work-feature { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 540px) {
+      .tutorial-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="#" class="nav-brand">Ken Moore</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#tutorials">Tutorials</a></li>
+      <li><a href="#works">Works</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <p class="hero-tagline">Data &nbsp;&middot;&nbsp; Analytics &nbsp;&middot;&nbsp; Education</p>
+        <h1 class="hero-name">Ken Moore</h1>
+        <p class="hero-sub">Analytics consulting and education services &mdash; working internationally across industries and borders.</p>
+        <div class="hero-buttons">
+          <a href="#tutorials" class="btn btn-primary">View Tutorials</a>
+          <a href="#contact" class="btn btn-outline">Get in Touch</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <img src="assets/ken-moore.avif" alt="Ken Moore">
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="section-inner">
+      <div class="about-grid">
+        <div class="about-label-col">
+          <p class="section-label">About</p>
+          <h2 class="section-title">Data scientist,<br>educator,<br>systems thinker.</h2>
+        </div>
+        <div class="about-text">
+          <p>I work at the intersection of data analytics and education &mdash; helping organizations understand their data, train their people, and think clearly about complex problems. My background spans government, healthcare, and education sectors, and I bring the same analytical rigour to all of them.</p>
+          <p>I&rsquo;m an experienced educator who has led systems thinking classes and workshops, designed curriculum, and built data literacy programs for academic and professional audiences. I&rsquo;m also the author of published work on measuring productivity and performance in nonprofits and educational institutions.</p>
+          <p>My practice is international. I have deep roots in Indonesia, Australia, and the United States, with an expanding network across Asia and beyond.</p>
+          <div class="about-tags">
+            <span class="tag">Indonesia</span>
+            <span class="tag">Australia</span>
+            <span class="tag">United States</span>
+            <span class="tag">Analytics Consulting</span>
+            <span class="tag">Education &amp; Training</span>
+            <span class="tag">Systems Thinking</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section id="services">
+    <div class="section-inner">
+      <p class="section-label">What I Do</p>
+      <h2 class="section-title">Services</h2>
+      <div class="services-grid">
+        <div class="service-card">
+          <h3>Analytics Consulting</h3>
+          <p>Data science and statistical analysis for any industry &mdash; government, healthcare, education, or private sector. From exploratory analysis to full modeling projects, I work with your data to surface the answers you need. No sector bias; rigour throughout.</p>
+        </div>
+        <div class="service-card">
+          <h3>Education &amp; Training</h3>
+          <p>Curriculum design, systems thinking workshops, and data literacy programs. I&rsquo;ve built and delivered training for academic and professional audiences internationally, and I can tailor programs to your organization&rsquo;s specific context and goals.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tutorials -->
+  <section id="tutorials">
+    <div class="section-inner">
+      <p class="section-label">Learning Resources</p>
+      <h2 class="section-title">Analytics Tutorials</h2>
+      <p class="tutorials-intro">Working through real quantitative methods from scratch &mdash; clean R implementations with clear explanations. Currently covering System Dynamics from the MIT Road Maps series. More topics and series coming.</p>
+      <div class="tutorial-grid">
+        <a href="tut-01-first-order-positive-feedback.html" class="tutorial-card">
+          <div class="tutorial-num">01 &middot; System Dynamics</div>
+          <h4>First-Order Positive Feedback</h4>
+          <p>Exponential growth</p>
+        </a>
+        <a href="tut-02-first-order-positive-feedback-behavior.html" class="tutorial-card">
+          <div class="tutorial-num">02 &middot; System Dynamics</div>
+          <h4>Behavior of Positive Feedback Systems</h4>
+          <p>Sensitivity analysis</p>
+        </a>
+        <a href="tut-03-first-order-negative-feedback.html" class="tutorial-card">
+          <div class="tutorial-num">03 &middot; System Dynamics</div>
+          <h4>First-Order Negative Feedback</h4>
+          <p>Goal-seeking / exponential decay</p>
+        </a>
+        <a href="tut-04-closing-the-gap.html" class="tutorial-card">
+          <div class="tutorial-num">04 &middot; System Dynamics</div>
+          <h4>Closing the Gap</h4>
+          <p>Asymptotic growth and decay</p>
+        </a>
+        <a href="tut-05-s-shaped-growth.html" class="tutorial-card">
+          <div class="tutorial-num">05 &middot; System Dynamics</div>
+          <h4>S-Shaped Growth</h4>
+          <p>Combined positive and negative feedback</p>
+        </a>
+        <a href="tut-06-epidemic-sis.html" class="tutorial-card">
+          <div class="tutorial-num">06 &middot; System Dynamics</div>
+          <h4>S-Shaped Growth &mdash; SIS Epidemic</h4>
+          <p>Two-stock epidemic structure</p>
+        </a>
+        <a href="tut-07-oscillation-pendulum.html" class="tutorial-card">
+          <div class="tutorial-num">07 &middot; System Dynamics</div>
+          <h4>Sustained Oscillation &mdash; The Pendulum</h4>
+          <p>Two-stock cross-coupled structure; RK4</p>
+        </a>
+      </div>
+      <div class="tutorials-footer">
+        <p class="tutorials-more">More series coming &mdash; business analytics, forecasting, and beyond.</p>
+        <a href="tutorials.html" class="btn btn-outline-dark">Browse all tutorials</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Selected Works -->
+  <section id="works">
+    <div class="section-inner">
+      <p class="section-label">Selected Works</p>
+      <h2 class="section-title">Publications</h2>
+      <div class="work-feature">
+        <!-- Book cover image -->
+        <img src="assets/book_cover.png" alt="Book cover" style="width:160px;border-radius:4px;box-shadow:0 12px 40px 
+  rgba(0,0,0,0.4);">
+        <div>
+          <h3 class="work-title">Measuring Productivity and Performance in Nonprofits and Educational Institutions</h3>
+          <p class="work-desc">Real-world examples for how to characterize and measure the productivity and performance of nonprofits and educational institutions. Available for preview and purchase.</p>
+          <div class="work-links">
+            <a href="https://link.springer.com/book/10.1007/978-3-030-72965-3#toc" class="btn btn-outline" target="_blank" rel="noopener">Preview</a>
+            <a href="https://link.springer.com/book/10.1007/978-3-030-72965-3" class="btn btn-primary" target="_blank" rel="noopener">Purchase</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="section-inner">
+      <p class="section-label">Get in Touch</p>
+      <h2 class="section-title">Let&rsquo;s work together.</h2>
+      <p class="contact-sub">Whether you have a data project, a training need, or just want to explore what&rsquo;s possible &mdash; I&rsquo;d love to hear from you.</p>
+      <a href="mailto:kenneth.moore@fulbrightmail.org" class="contact-email">kenneth.moore@fulbrightmail.org</a>
+      <div class="social-links">
+        <a href="https://www.linkedin.com/in/ken-moore-works" class="social-link" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://scholar.google.com/citations?user=aPN91fUAAAAJ&hl=en" class="social-link" target="_blank" rel="noopener">Google Scholar</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 Ken Moore. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
