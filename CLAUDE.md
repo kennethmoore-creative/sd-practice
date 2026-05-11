@@ -8,9 +8,11 @@ Do **not** automatically commit or push changes. Make file edits and stop there 
 
 ### Branching strategy
 
-- `main` — production branch. Triggers the GitHub Pages website deployment on every push. Only merge into `main` when explicitly asked to cut a new website release.
-- `dev` — integration branch. All feature branches PR into `dev`, not `main`.
+- `main` — production branch. Triggers the GitHub Pages website deployment on every push. **Never merge anything into `main` directly.** Only a deliberate website release cut (explicitly instructed by the user) should ever land on `main`.
+- `dev` — integration branch. All feature branches must PR into `dev`, never into `main`. Do not create PRs or perform any merges without explicit user instruction.
 - Feature branches — branch off `dev`, named `feature/<short-description>`. When creating an issue and its feature branch, always target `dev` as the PR base.
+
+Commits on a feature branch stay on that branch until the user explicitly asks to merge or PR. Do not merge, rebase, or cherry-pick across branches without being asked.
 
 ## Project Overview
 
