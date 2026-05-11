@@ -9,7 +9,7 @@
 <meta name="author" content="By Kenneth Moore">
 <meta name="dcterms.date" content="2026-04-18">
 
-<title>SD Tutorial 4: Closing the Gap – SD Tutorials</title>
+<title>SD Tutorial 4: Closing the Gap – Ken Moore</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -79,7 +79,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-f79c7fb6db380d32be398468f2fb58cf.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-00f97fe1360e421a8e64d32ff5d13a18.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-27a9163873b1a6cd8364aa5c89144e35.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -148,7 +148,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">SD Tutorials</span>
+    <span class="navbar-title">Ken Moore</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -158,37 +158,48 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
+    <a class="nav-link" href="./"> 
 <span class="menu-text">Home</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-01-first-order-positive-feedback.html"> 
-<span class="menu-text">1: Positive Feedback</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Tutorials</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-tutorials">    
+        <li>
+    <a class="dropdown-item" href="./tutorials.html">
+ <span class="dropdown-text">All Tutorials</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-02-first-order-positive-feedback-behavior.html"> 
-<span class="menu-text">2: Sensitivity Analysis</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-01-first-order-positive-feedback.html">
+ <span class="dropdown-text">1: Positive Feedback</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-03-first-order-negative-feedback.html"> 
-<span class="menu-text">3: Negative Feedback</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-02-first-order-positive-feedback-behavior.html">
+ <span class="dropdown-text">2: Sensitivity Analysis</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link active" href="./tut-04-closing-the-gap.html" aria-current="page"> 
-<span class="menu-text">4: Closing the Gap</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-03-first-order-negative-feedback.html">
+ <span class="dropdown-text">3: Negative Feedback</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-05-s-shaped-growth.html"> 
-<span class="menu-text">5: S-Shaped Growth</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-04-closing-the-gap.html">
+ <span class="dropdown-text">4: Closing the Gap</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-06-epidemic-sis.html"> 
-<span class="menu-text">6: SIS Epidemic</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-05-s-shaped-growth.html">
+ <span class="dropdown-text">5: S-Shaped Growth</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-07-oscillation-pendulum.html"> 
-<span class="menu-text">7: Oscillation</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-06-epidemic-sis.html">
+ <span class="dropdown-text">6: SIS Epidemic</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./tut-07-oscillation-pendulum.html">
+ <span class="dropdown-text">7: Oscillation</span></a>
+  </li>  
+    </ul>
+  </li>
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -205,8 +216,7 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#acknowledgement" id="toc-acknowledgement" class="nav-link active" data-scroll-target="#acknowledgement">Acknowledgement</a></li>
-  <li><a href="#goal-seeking-behavior" id="toc-goal-seeking-behavior" class="nav-link" data-scroll-target="#goal-seeking-behavior">Goal-Seeking Behavior</a></li>
+  <li><a href="#goal-seeking-behavior" id="toc-goal-seeking-behavior" class="nav-link active" data-scroll-target="#goal-seeking-behavior">Goal-Seeking Behavior</a></li>
   <li><a href="#the-generic-model" id="toc-the-generic-model" class="nav-link" data-scroll-target="#the-generic-model">The Generic Model</a>
   <ul class="collapse">
   <li><a href="#functional-r-code" id="toc-functional-r-code" class="nav-link" data-scroll-target="#functional-r-code">Functional R code</a></li>
@@ -259,11 +269,6 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(deSolve)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="acknowledgement" class="level1">
-<h1>Acknowledgement</h1>
-<p>The core content behind this tutorial derives from the <a href="https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/">Road Maps</a> curriculum, developed by the System Dynamics in Education Project (SDEP) at MIT under the direction of Professor Jay Forrester. I’d like to give a personal thanks to Lees Stutz of the <a href="http://www.clexchange.org/">Creative Learning Exchange</a> (CLE) for introducing me to the Road Maps curriculum, and for supporting my own SD journey.</p>
-<p>Source material for this tutorial comes from <a href="https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/genericnegative.pdf">Generic Structures: First-Order Negative Feedback</a> (D-4475-2).</p>
-</section>
 <section id="goal-seeking-behavior" class="level1">
 <h1>Goal-Seeking Behavior</h1>
 <p>In the previous tutorial, we explored exponential decay — a negative feedback system where a stock drains asymptotically toward zero. But zero is just one possible goal. The generic structure of a first-order negative feedback loop is more powerful than that: the stock will always asymptotically seek <em>any</em> goal you specify, whether it is being approached from above or below.</p>

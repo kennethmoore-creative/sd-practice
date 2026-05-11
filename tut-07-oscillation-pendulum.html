@@ -8,7 +8,7 @@
 
 <meta name="author" content="Kenneth Moore">
 
-<title>Tutorial 7: Sustained Oscillation — The Pendulum – SD Tutorials</title>
+<title>Tutorial 7: Sustained Oscillation — The Pendulum – Ken Moore</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -78,7 +78,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-f79c7fb6db380d32be398468f2fb58cf.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-00f97fe1360e421a8e64d32ff5d13a18.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-944055a0cda0cb259de16c8abb55adac.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -147,7 +147,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">SD Tutorials</span>
+    <span class="navbar-title">Ken Moore</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -157,37 +157,48 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
+    <a class="nav-link" href="./"> 
 <span class="menu-text">Home</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-01-first-order-positive-feedback.html"> 
-<span class="menu-text">1: Positive Feedback</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Tutorials</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-tutorials">    
+        <li>
+    <a class="dropdown-item" href="./tutorials.html">
+ <span class="dropdown-text">All Tutorials</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-02-first-order-positive-feedback-behavior.html"> 
-<span class="menu-text">2: Sensitivity Analysis</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-01-first-order-positive-feedback.html">
+ <span class="dropdown-text">1: Positive Feedback</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-03-first-order-negative-feedback.html"> 
-<span class="menu-text">3: Negative Feedback</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-02-first-order-positive-feedback-behavior.html">
+ <span class="dropdown-text">2: Sensitivity Analysis</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-04-closing-the-gap.html"> 
-<span class="menu-text">4: Closing the Gap</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-03-first-order-negative-feedback.html">
+ <span class="dropdown-text">3: Negative Feedback</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-05-s-shaped-growth.html"> 
-<span class="menu-text">5: S-Shaped Growth</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-04-closing-the-gap.html">
+ <span class="dropdown-text">4: Closing the Gap</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./tut-06-epidemic-sis.html"> 
-<span class="menu-text">6: SIS Epidemic</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-05-s-shaped-growth.html">
+ <span class="dropdown-text">5: S-Shaped Growth</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link active" href="./tut-07-oscillation-pendulum.html" aria-current="page"> 
-<span class="menu-text">7: Oscillation</span></a>
+        <li>
+    <a class="dropdown-item" href="./tut-06-epidemic-sis.html">
+ <span class="dropdown-text">6: SIS Epidemic</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./tut-07-oscillation-pendulum.html">
+ <span class="dropdown-text">7: Oscillation</span></a>
+  </li>  
+    </ul>
+  </li>
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -204,8 +215,7 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#acknowledgement" id="toc-acknowledgement" class="nav-link active" data-scroll-target="#acknowledgement">Acknowledgement</a></li>
-  <li><a href="#introduction-what-is-sustained-oscillation" id="toc-introduction-what-is-sustained-oscillation" class="nav-link" data-scroll-target="#introduction-what-is-sustained-oscillation">Introduction: What Is Sustained Oscillation?</a></li>
+  <li><a href="#introduction-what-is-sustained-oscillation" id="toc-introduction-what-is-sustained-oscillation" class="nav-link active" data-scroll-target="#introduction-what-is-sustained-oscillation">Introduction: What Is Sustained Oscillation?</a></li>
   <li><a href="#the-generic-structure-for-sustained-oscillation" id="toc-the-generic-structure-for-sustained-oscillation" class="nav-link" data-scroll-target="#the-generic-structure-for-sustained-oscillation">The Generic Structure for Sustained Oscillation</a></li>
   <li><a href="#the-pendulum-model" id="toc-the-pendulum-model" class="nav-link" data-scroll-target="#the-pendulum-model">The Pendulum Model</a></li>
   <li><a href="#model-equations" id="toc-model-equations" class="nav-link" data-scroll-target="#model-equations">Model Equations</a></li>
@@ -250,11 +260,7 @@ window.Quarto = {
 </header>
 
 
-<section id="acknowledgement" class="level2">
-<h2 class="anchored" data-anchor-id="acknowledgement">Acknowledgement</h2>
-<p>This tutorial is based on Chapter 6 of the MIT Road Maps series: <em>Generic Structures in Oscillating Systems</em> (D-4426-3), part of the System Dynamics in Education Project supervised by Jay W. Forrester.</p>
 <hr>
-</section>
 <section id="introduction-what-is-sustained-oscillation" class="level2">
 <h2 class="anchored" data-anchor-id="introduction-what-is-sustained-oscillation">Introduction: What Is Sustained Oscillation?</h2>
 <p>Many real systems cycle up and down indefinitely — a pendulum swings back and forth, employment levels in an industry rise and fall on multi-year cycles, blood sugar oscillates around a set point. This behaviour is called <strong>sustained oscillation</strong>.</p>
