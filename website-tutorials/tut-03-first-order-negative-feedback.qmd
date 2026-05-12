@@ -295,14 +295,14 @@ system_model <- function(time,
     adjustment_gap <- stock - goal_for_stock         # unit
 
     # define flow
-    flow <- adjustment_gap * draining_fraction       # unit/time
+    f_draining <- adjustment_gap * draining_fraction       # unit/time
 
     # stock differential to integrate, flow is negative!
-    ds_dt <- -flow
+    ds_dt <- -f_draining
 
     # results... when we solve this ODE below,
     return(list(c(ds_dt),
-                change_in_stock = flow,
+                change_in_stock = f_draining,
                 sim = sim))
 
   })

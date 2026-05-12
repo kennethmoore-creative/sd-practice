@@ -77,10 +77,10 @@ first_order_pos_feedback <- function(sim = 1,
 
     with(as.list(c(stocks, params)),
 
-         {flow <- compounding_fraction * stock         # people/year
-         ds_dt <- flow
+         {f_growing <- compounding_fraction * stock         # people/year
+         ds_dt <- f_growing
          return(list(c(ds_dt),
-                     change_in_stock = flow,
+                     change_in_stock = f_growing,
                      sim = sim))}
          )
   }

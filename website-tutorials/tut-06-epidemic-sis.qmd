@@ -190,9 +190,9 @@ Note that `total population = Healthy + Sick` is conserved — the model has no 
 model <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
-    a_prob_contact_sick <- s_sick / (s_healthy + s_sick)
+    c_prob_contact_sick <- s_sick / (s_healthy + s_sick)
 
-    f_catching_illness <- s_healthy * a_prob_contact_sick *
+    f_catching_illness <- s_healthy * c_prob_contact_sick *
                           p_population_interactions * p_prob_catching   # people/month
     f_recovering    <- s_sick / p_duration_of_illness                # people/month
 
@@ -322,10 +322,10 @@ What happens if there is no recovery? A terminal illness removes the balancing l
 model_no_recovery <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
-    a_total_population  <- s_healthy + s_sick
-    a_prob_contact_sick <- s_sick / a_total_population
+    c_total_population  <- s_healthy + s_sick
+    c_prob_contact_sick <- s_sick / c_total_population
 
-    f_catching_illness <- s_healthy * a_prob_contact_sick *
+    f_catching_illness <- s_healthy * c_prob_contact_sick *
                           p_population_interactions * p_prob_catching
     f_recovering    <- 0
 

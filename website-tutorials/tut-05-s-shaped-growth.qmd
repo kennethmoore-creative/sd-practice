@@ -225,20 +225,20 @@ params_s1 <- c(
 model_s1 <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
-    a_population_density <- s_rabbit_population / p_area
-    a_normalized_density <- a_population_density / p_normal_pop_density
-    a_deaths_multiplier  <- deaths_mult_fn(a_normalized_density)
+    c_population_density <- s_rabbit_population / p_area
+    c_normalized_density <- c_population_density / p_normal_pop_density
+    c_deaths_multiplier  <- deaths_mult_fn(c_normalized_density)
 
-    f_births <- s_rabbit_population * p_births_normal
-    f_deaths <- (s_rabbit_population / p_average_lifetime) * a_deaths_multiplier
+    f_birthing <- s_rabbit_population * p_births_normal
+    f_dying <- (s_rabbit_population / p_average_lifetime) * c_deaths_multiplier
 
-    ds_dt <- f_births - f_deaths
+    ds_dt <- f_birthing - f_dying
 
     return(list(c(ds_dt),
-                births            = f_births,
-                deaths            = f_deaths,
-                normalized_density = a_normalized_density,
-                deaths_multiplier  = a_deaths_multiplier))
+                births            = f_birthing,
+                deaths            = f_dying,
+                normalized_density = c_normalized_density,
+                deaths_multiplier  = c_deaths_multiplier))
   })
 }
 ```
@@ -448,23 +448,23 @@ model_s2 <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
     # food balance: can supply keep up with demand?
-    f_carrots_eaten        <- s_rabbit_population * p_rabbit_appetite
-    a_food_per_rabbit      <- p_replenishment / max(s_rabbit_population, 0.001)
-    a_normalized_nutrition <- min(a_food_per_rabbit / p_rabbit_appetite, 1)
+    f_consuming        <- s_rabbit_population * p_rabbit_appetite
+    c_food_per_rabbit      <- p_replenishment / max(s_rabbit_population, 0.001)
+    c_normalized_nutrition <- min(c_food_per_rabbit / p_rabbit_appetite, 1)
 
     # rabbit flows — effective lifetime shortens proportionally with food scarcity
-    f_births <- s_rabbit_population * p_births_normal
-    f_deaths <- s_rabbit_population / (p_average_lifetime * a_normalized_nutrition)
+    f_birthing <- s_rabbit_population * p_births_normal
+    f_dying <- s_rabbit_population / (p_average_lifetime * c_normalized_nutrition)
 
-    ds_dt <- f_births - f_deaths
+    ds_dt <- f_birthing - f_dying
 
     return(list(
       c(ds_dt),
-      births               = f_births,
-      deaths               = f_deaths,
-      carrots_eaten        = f_carrots_eaten,
-      normalized_nutrition = a_normalized_nutrition,
-      nutritional_stress   = 1 / a_normalized_nutrition
+      births               = f_birthing,
+      deaths               = f_dying,
+      carrots_eaten        = f_consuming,
+      normalized_nutrition = c_normalized_nutrition,
+      nutritional_stress   = 1 / c_normalized_nutrition
     ))
   })
 }

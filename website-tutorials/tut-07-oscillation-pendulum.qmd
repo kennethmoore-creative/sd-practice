@@ -289,14 +289,14 @@ RK4 evaluates the derivative at four points within each step, tracking the curva
 
 model <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
-    a_gap               <- p_desired_position - s_position
+    c_gap               <- p_desired_position - s_position
     f_changing_position <- s_velocity
-    f_changing_velocity <- (p_gravity / p_length_of_pendulum) * a_gap
+    f_changing_velocity <- (p_gravity / p_length_of_pendulum) * c_gap
     ds_position_dt      <- f_changing_position
     ds_velocity_dt      <- f_changing_velocity
     return(list(
       c(ds_position_dt, ds_velocity_dt),
-      gap          = a_gap,
+      gap          = c_gap,
       acceleration = f_changing_velocity
     ))
   })
@@ -348,14 +348,14 @@ The model follows the standard `deSolve` function signature. Variable names use 
 
 model <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
-    a_gap               <- p_desired_position - s_position
+    c_gap               <- p_desired_position - s_position
     f_changing_position <- s_velocity
-    f_changing_velocity <- (p_gravity / p_length_of_pendulum) * a_gap
+    f_changing_velocity <- (p_gravity / p_length_of_pendulum) * c_gap
     ds_position_dt      <- f_changing_position
     ds_velocity_dt      <- f_changing_velocity
     return(list(
       c(ds_position_dt, ds_velocity_dt),
-      gap          = a_gap,
+      gap          = c_gap,
       acceleration = f_changing_velocity
     ))
   })

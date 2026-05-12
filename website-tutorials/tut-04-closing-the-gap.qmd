@@ -173,13 +173,13 @@ model <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
     c_gap  <- p_goal - s_stock             # units      — positive: below goal; negative: above goal
-    f_flow <- c_gap / p_adjustment_time    # units/time — sign drives growth or decay
+    f_adjusting <- c_gap / p_adjustment_time    # units/time — sign drives growth or decay
 
-    ds_dt <- f_flow
+    ds_dt <- f_adjusting
 
     return(list(c(ds_dt),
                 gap  = c_gap,
-                flow = f_flow))
+                flow = f_adjusting))
   })
 }
 ```

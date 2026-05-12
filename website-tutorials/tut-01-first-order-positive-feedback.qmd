@@ -170,14 +170,14 @@ system_model <- function(time,
   with(model_inputs,{
 
     # define flow
-    flow <- compounding_fraction * stock         # people/year
+    f_growing <- compounding_fraction * stock         # people/year
 
     # stock differential to integrate
-    ds_dt <- flow
+    ds_dt <- f_growing
 
     # results... when we solve this ODE below,
     return(list(c(ds_dt),
-                change_in_stock = flow,
+                change_in_stock = f_growing,
                 sim = sim))
 
   })
