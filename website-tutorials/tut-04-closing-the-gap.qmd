@@ -267,7 +267,7 @@ The generic first-order negative feedback structure is one of the most transfera
 
 # Bonus
 
-In my own personal career as a consultant, this generic negative-feedback structure has been been one of the most powerful problem-solving heuristics I've ever come across. Nearly any "problem" you can conceive of can be reframed in terms of:
+In my own career as a consultant, this generic negative-feedback structure has been been one of the most powerful problem-solving heuristics I've come across. Nearly any "problem" you can conceive of can be reframed in terms of:
 
 "Problem"  ==  "Difference between desired state and current state"
 
@@ -279,7 +279,7 @@ B. "My team isn't winning enough proposals"
 A'. My son needs to complete four assignments per week; he's currently completing none. 
 B'. On average, we need to win $200k of work per quarter; we're currently winning only half of that. 
 
-This "gap-closing" reframing of problems anchors them in something tangible that can be improved incrementally. Importantly, it makes the problem less personal! Of course, the reframing doesn't necessarily point to an immediate solution, but we now know what success looks like, and we can probe and test how to get there. 
+This "gap-closing" reframing of problems anchors them in something tangible that can be improved incrementally. Importantly, it makes the problem less personal! Of course, the reframing doesn't always point to a silver bullet, but we now know what success looks like, and we can probe and test how to get there. 
 
 Do I need to sit down with my son, next to him while he does his homework at least once per week, twice? Does he just need a reminder? Will I be happy if next week he's just getting in two assignments? Does measurable, gradual progress not deserve acknowledgement before expecting too much too soon?
 
