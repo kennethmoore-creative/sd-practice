@@ -1,0 +1,434 @@
+---
+title: "Tutorial 8: Damped Oscillations — The Real Pendulum"
+subtitle: "How friction adds a new factor to the generic structure and settles the system to equilibrium"
+author: "Kenneth Moore"
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(deSolve)
+library(tidyverse)
+source("../R/sd-diagram-functions.R")
+```
+
+---
+
+## From Sustained to Damped Oscillation
+
+Tutorial 7 showed that two stocks with cross-coupled flows produce **sustained oscillation** — cycles that repeat indefinitely at constant amplitude. The frictionless pendulum was our example: velocity driving the change in position, and position driving the change in velocity through a restoring force.
+
+But the frictionless pendulum is simplistic In the real world, a swinging pendulum loses energy with every cycle — to air resistance, to bearing friction at the pivot, to internal flexing of the rod. The oscillations do not sustain forever; they decay. The pendulum settles, gradually coming to rest at its equilibrium position.
+
+This is **damped oscillation**: the same cross-coupled two-stock structure as Tutorial 7, but with an additional force that steadily removes energy from the system.
+
+---
+
+## The Generic Structure, Revisited
+
+The generic structure for sustained oscillation has a crucial feature we set aside in Tutorial 7: the diagram explicitly reserves space for **factors affecting each flow**.
+
+```{r}
+#| label: fig-generic-structure
+#| fig-cap: "The generic two-stock oscillating structure. Each flow is driven by the opposite stock (cross-coupling). The 'Factors affecting Flow' boxes are not decorative — they represent real-world forces that modify each flow beyond the cross-coupling alone."
+#| fig-height: 7.0
+#| echo: false
+
+flow_arrow <- arrow(ends = "both", length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+
+nf1_valve_x <- 3.5
+nf2_valve_x <- 6.5
+
+ggplot() +
+
+  annotate("rect", xmin = 5.5, xmax = 9.5, ymin = 5.5, ymax = 6.5,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 5.62, xmax = 9.38, ymin = 5.62, ymax = 6.38,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 7.5, y = 6.0, label = "Stock 1",
+           size = 3.5, fontface = "bold") +
+
+  geom_polygon(data = make_cloud(0.9, 6.0), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 1.45, xend = 5.4, y = 6.0, yend = 6.0,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = nf1_valve_x, y = 6.0, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = nf1_valve_x, y = 6.5,
+           label = "Net Flow 1", size = 3.2, colour = "#4e8cd4") +
+  annotate("text", x = nf1_valve_x - 1.5, y = 8.2,
+           label = "Factors\naffecting\nFlow 1", size = 3.2) +
+
+  annotate("rect", xmin = 0.5, xmax = 4.5, ymin = 3.3, ymax = 4.3,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 0.62, xmax = 4.38, ymin = 3.42, ymax = 4.18,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 2.5, y = 3.8, label = "Stock 2",
+           size = 3.5, fontface = "bold") +
+
+  geom_polygon(data = make_cloud(9.1, 3.8), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 8.55, xend = 4.6, y = 3.8, yend = 3.8,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = nf2_valve_x, y = 3.8, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = nf2_valve_x, y = 3.2,
+           label = "Net Flow 2", size = 3.2, colour = "#4e8cd4") +
+  annotate("text", x = nf2_valve_x - 1.5, y = 1.3,
+           label = "Factors\naffecting\nFlow 2", size = 3.2) +
+
+  geom_curve(
+    data = data.frame(x = 2.5, y = 4.3, xend = nf1_valve_x - 0.5, yend = 5.88),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  geom_curve(
+    data = data.frame(x = nf1_valve_x - 1, y = 8.2, xend = nf1_valve_x, yend = 6.7),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  geom_curve(
+    data = data.frame(x = 7.5, y = 5.5, xend = nf2_valve_x + 0.5, yend = 3.92),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  geom_curve(
+    data = data.frame(x = nf2_valve_x - 1, y = 1.3, xend = nf2_valve_x, yend = 2.9),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.35, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+
+  theme_void() +
+  coord_cartesian(xlim = c(0, 10), ylim = c(0.75, 8.5))
+```
+
+In Tutorial 7, the pendulum's **Net Flow 1** (Changing Position) had no external factors — it was driven entirely by the other stock (Velocity). The "Factors affecting Flow 1" box was structurally empty. **Net Flow 2** (Changing Velocity) did have factors: Gap, gravity, and pendulum length.
+
+In the real world, Flow 2 has one more factor that Tutorial 7 ignored: **friction**. Air resistance and bearing friction act against the direction of motion — they oppose velocity, reducing the rate at which velocity changes with each swing. Friction is the missing entry in the "Factors affecting Flow 2" box.
+
+---
+
+## Friction as a Structural Addition
+
+Kinetic friction in a pendulum acts as **viscous damping**: the drag force is proportional to the current velocity and always opposes the direction of motion. In stock-and-flow terms, this adds a second term to the Changing Velocity flow:
+
+- **Restoring acceleration** — driven by the gap from equilibrium, gravity, and length (as in Tutorial 7).
+- **Friction drag** — proportional to current velocity, acting against it.
+
+The new parameter is the **friction coefficient**, $b$. A small value of $b$ produces slow, gradual decay; a larger value causes faster settling.
+
+---
+
+## Updated Stock-and-Flow Diagram
+
+The structure is identical to Tutorial 7 with two additions to the Changing Velocity flow: the friction coefficient parameter, and a new information link from the Velocity stock back to its own flow (because the drag force depends on how fast the pendulum is currently moving).
+
+```{r}
+#| label: fig-damped-pendulum-structure
+#| fig-cap: "Stock-and-flow structure of the damped pendulum. Two additions to Changing Velocity distinguish this from Tutorial 7: the **friction coefficient** parameter and a self-referencing information link from **Velocity** (the drag force is proportional to current speed). Everything else is unchanged."
+#| fig-height: 4.8
+#| echo: false
+
+flow_arrow <- arrow(ends = "both", length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+
+cp_valve_x <- 3.5
+cp_valve_y <- 4.5
+cv_valve_x <- 6.5
+cv_valve_y <- 1.4
+
+ggplot() +
+
+  # --- Position stock (upper right) ---
+  annotate("rect", xmin = 5.5, xmax = 9.5, ymin = 4.0, ymax = 5.0,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 5.62, xmax = 9.38, ymin = 4.12, ymax = 4.88,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 7.5, y = 4.5, label = "Position",
+           size = 3.5, fontface = "bold") +
+
+  # Changing Position: cloud (left) → Position (bi-flow)
+  geom_polygon(data = make_cloud(0.9, cp_valve_y), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 1.55, xend = 5.5, y = cp_valve_y, yend = cp_valve_y,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = cp_valve_x, y = cp_valve_y, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = cp_valve_x, y = 5.05,
+           label = "Changing Position", size = 3.2, colour = "#4e8cd4") +
+
+  # --- Velocity stock (lower left) ---
+  annotate("rect", xmin = 0.5, xmax = 4.5, ymin = 0.9, ymax = 1.9,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 0.62, xmax = 4.38, ymin = 1.02, ymax = 1.78,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 2.5, y = 1.4, label = "Velocity",
+           size = 3.5, fontface = "bold") +
+
+  # Changing Velocity: cloud (right) → Velocity (bi-flow)
+  geom_polygon(data = make_cloud(9.1, cv_valve_y), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 8.45, xend = 4.5, y = cv_valve_y, yend = cv_valve_y,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = cv_valve_x, y = cv_valve_y, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = cv_valve_x, y = 1.95,
+           label = "Changing Velocity", size = 3.2, colour = "#4e8cd4") +
+
+  # --- Converter (bold) ---
+  annotate("text", x = 7.5, y = 3.1, label = "Gap",
+           size = 3.2, fontface = "bold") +
+
+  # --- Parameters (plain text) ---
+  annotate("text", x = 9.2, y = 2.9,  label = "Desired\nPosition",
+           size = 3.0, hjust = 0.5) +
+  annotate("text", x = 7.0, y = 0.52, label = "Gravity (g)",
+           size = 3.0, hjust = 0.5) +
+  annotate("text", x = 9.0, y = 0.52, label = "Length (L)",
+           size = 3.0, hjust = 0.5) +
+  annotate("text", x = 4.5, y = 0.52, label = "friction\ncoefficient",
+           size = 3.0, hjust = 0.5) +
+
+  # --- Info links ---
+  # 1. Velocity → Changing Position valve (cross-coupling)
+  geom_curve(
+    data = data.frame(x = 2.5, y = 1.9, xend = cp_valve_x, yend = cp_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.35, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # 2. Position → Gap
+  geom_curve(
+    data = data.frame(x = 7.5, y = 4.0, xend = 7.5, yend = 3.25),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # 3. Desired Position → Gap
+  geom_curve(
+    data = data.frame(x = 9.0, y = 3.18, xend = 7.85, yend = 3.05),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # 4. Gap → Changing Velocity valve (cross-coupling)
+  geom_curve(
+    data = data.frame(x = 7.1, y = 2.95, xend = cv_valve_x, yend = 2.20),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # 5. Gravity → Changing Velocity valve
+  geom_curve(
+    data = data.frame(x = 6.8, y = 0.65, xend = 6.35, yend = 1.28),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # 6. Length → Changing Velocity valve
+  geom_curve(
+    data = data.frame(x = 8.75, y = 0.65, xend = 6.65, yend = 1.28),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # 7. friction coefficient → Changing Velocity valve (NEW)
+  geom_curve(
+    data = data.frame(x = 4.75, y = 0.70, xend = 6.3, yend = 1.28),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # 8. Velocity → Changing Velocity valve — friction drag depends on speed (NEW)
+  geom_curve(
+    data = data.frame(x = 4.45, y = 1.05, xend = 6.35, yend = 1.28),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.4, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+
+  theme_void() +
+  coord_cartesian(xlim = c(0, 10), ylim = c(0.3, 5.5))
+```
+
+---
+
+## Model Equations
+
+The only change from Tutorial 7 is the addition of the friction drag term to the Changing Velocity equation:
+
+$$\frac{d(\text{Position})}{dt} = \text{Velocity}$$
+
+$$\frac{d(\text{Velocity})}{dt} = \frac{g}{L} \times \text{Gap} \ - \ b \times \text{Velocity}$$
+
+$$\text{Gap} = \text{Desired Position} - \text{Position}$$
+
+The friction term $b \times \text{Velocity}$ carries the correct sign automatically: when the pendulum moves right (Velocity $> 0$), the term is positive and is subtracted — reducing the rightward acceleration. When it moves left (Velocity $< 0$), the term is negative and subtracting it increases the changing velocity — slowing the leftward motion. Friction always opposes the direction of movement, regardless of which way the bob swings.
+
+---
+
+## R Implementation
+
+```{r}
+#| label: libraries
+#| message: false
+
+library(deSolve)
+library(tidyverse)
+```
+
+The model follows the standard `deSolve` function signature. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `c_` converters, `f_` flows).
+
+```{r}
+#| label: model-damped
+
+model_damped <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    c_gap               <- p_desired_position - s_position
+    f_changing_position <- s_velocity
+    f_changing_velocity <- (p_gravity / p_length_of_pendulum) * c_gap -
+                             p_friction_coeff * s_velocity
+    ds_position_dt      <- f_changing_position
+    ds_velocity_dt      <- f_changing_velocity
+    return(list(
+      c(ds_position_dt, ds_velocity_dt),
+      gap = c_gap
+    ))
+  })
+}
+
+stocks <- c(s_position = 0.15, s_velocity = 0)
+params <- c(
+  p_desired_position   = 0,
+  p_gravity            = 9.8,
+  p_length_of_pendulum = 1,
+  p_friction_coeff     = 0.3
+)
+```
+
+The pendulum is released from 0.15 metres with zero initial velocity, same as Tutorial 7. The friction coefficient is set to 0.3 — small enough to produce slow, gradual decay rather than rapid settling.
+
+Setting `p_friction_coeff = 0` recovers the undamped Tutorial 7 model exactly; the same function covers both cases.
+
+```{r}
+#| label: solve-damped
+
+sim_time <- seq(0, 25, 0.01)
+
+sim_damped <- ode(
+  times  = sim_time,
+  y      = stocks,
+  parms  = params,
+  func   = model_damped,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(across(everything(), as.numeric))
+```
+
+---
+
+## Position Over Time
+
+```{r}
+#| label: fig-position-damped
+#| fig-cap: "Position of the damped pendulum over 25 seconds. The oscillation frequency is unchanged from Tutorial 7, but the amplitude decays steadily as friction removes energy from the system. The pendulum asymptotically approaches its desired position of zero."
+#| fig-height: 3.5
+
+sim_damped |>
+  ggplot(aes(x = time, y = s_position)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70", linewidth = 0.5) +
+  geom_line(colour = "#4e8cd4", linewidth = 0.8) +
+  labs(x = "Time (seconds)", y = "Position (metres)") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+## Undamped vs Damped: Direct Comparison
+
+```{r}
+#| label: fig-comparison
+#| fig-cap: "Undamped (Tutorial 7) and damped oscillation on the same axes. The undamped pendulum cycles forever at constant amplitude. Friction gradually narrows each swing, drawing the trajectory toward the equilibrium position."
+#| fig-height: 3.5
+
+params_undamped <- replace(params, "p_friction_coeff", 0)
+
+sim_undamped <- ode(
+  times  = sim_time,
+  y      = stocks,
+  parms  = params_undamped,
+  func   = model_damped,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(across(everything(), as.numeric), label = "Undamped (b = 0)")
+
+sim_damped_labelled <- sim_damped |>
+  mutate(label = "Damped (b = 0.3)")
+
+bind_rows(sim_undamped, sim_damped_labelled) |>
+  ggplot(aes(x = time, y = s_position, colour = label)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70", linewidth = 0.5) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_manual(values = c("Undamped (b = 0)" = "grey60",
+                                  "Damped (b = 0.3)"  = "#4e8cd4")) +
+  labs(x = "Time (seconds)", y = "Position (metres)", colour = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+---
+
+## Phase Portrait: Ellipse to Spiral
+
+The phase portrait — velocity plotted against position — reveals the difference in structure most clearly. The undamped pendulum traces a closed ellipse, returning to exactly the same state each cycle. The damped pendulum traces an inward spiral, each loop slightly smaller than the last, converging on the origin.
+
+```{r}
+#| label: fig-phase-portrait-comparison
+#| fig-cap: "Phase portraits of the undamped (grey) and damped (blue) pendulum. The undamped trajectory is a closed ellipse — constant amplitude forever. The damped trajectory spirals inward to the origin, where Position = 0 and Velocity = 0: the bob at rest at its desired position."
+
+bind_rows(
+  sim_undamped      |> select(s_position, s_velocity) |> mutate(label = "Undamped (b = 0)"),
+  sim_damped_labelled |> select(s_position, s_velocity) |> mutate(label = "Damped (b = 0.3)")
+) |>
+  ggplot(aes(x = s_position, y = s_velocity, colour = label)) +
+  geom_path(linewidth = 0.7) +
+  scale_colour_manual(values = c("Undamped (b = 0)" = "grey70",
+                                  "Damped (b = 0.3)"  = "#4e8cd4")) +
+  labs(x = "Position (metres)", y = "Velocity (m/s)", colour = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+---
+
+## Sensitivity: How Much Friction Changes the Behaviour
+
+```{r}
+#| label: fig-friction-sensitivity
+#| fig-cap: "Three levels of friction coefficient. Higher values of b remove energy faster, compressing the decay into a shorter window. All three runs share the same underlying cross-coupled structure; only the rate of energy loss differs."
+#| fig-height: 3.5
+
+friction_levels <- c(0.1, 0.3, 0.6)
+
+sim_sensitivity <- map_dfr(friction_levels, function(b) {
+  p <- replace(params, "p_friction_coeff", b)
+  ode(times = sim_time, y = stocks, parms = p,
+      func = model_damped, method = "rk4") |>
+    as_tibble() |>
+    mutate(across(everything(), as.numeric),
+           label = paste0("b = ", b))
+})
+
+sim_sensitivity |>
+  ggplot(aes(x = time, y = s_position, colour = label)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70", linewidth = 0.5) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_manual(values = c("b = 0.1" = "#a8c8f0",
+                                  "b = 0.3" = "#4e8cd4",
+                                  "b = 0.6" = "#1a4a7a")) +
+  labs(x = "Time (seconds)", y = "Position (metres)", colour = "Friction coefficient") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+---
+
+## Summary
+
+- The generic two-stock oscillating structure always has space for **factors affecting each flow**. In the frictionless pendulum, that space for Changing Velocity was partially filled (Gap, gravity, length). In the real pendulum, **friction** fills it further.
+- Friction enters the Changing Velocity equation as a drag term proportional to current velocity: $-b \times \text{Velocity}$. It is automatically self-correcting in direction.
+- The result is **damped oscillation**: the same cross-coupled structure, same period, but with amplitude that decays exponentially toward the equilibrium.
+- The phase portrait transforms from a **closed ellipse** (sustained oscillation) to an **inward spiral** (damped oscillation) — one of the most visually direct ways to distinguish the two behaviours.
+- Increasing the friction coefficient accelerates the settling, but the qualitative behaviour — oscillatory decay to equilibrium — remains the same until damping becomes very large.

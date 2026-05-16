@@ -1,4 +1,4 @@
-# S-Shaped Growth — Food-Mediated Rabbit Deaths (Flow-Balance Nutrition)
+﻿# S-Shaped Growth — Food-Mediated Rabbit Deaths (Flow-Balance Nutrition)
 # Companion to s_shaped_structure_1_rabbit.R.
 #
 # Structure 1 used an empirical lookup table (approxfun) to relate population
@@ -8,8 +8,8 @@
 #
 # Nutrition signal:
 #
-#   a_food_per_rabbit      = p_replenishment / s_rabbit_population
-#   a_normalized_nutrition = min(a_food_per_rabbit / p_rabbitt_appetite, 1)
+#   c_food_per_rabbit      = p_replenishment / s_rabbit_population
+#   c_normalized_nutrition = min(c_food_per_rabbit / p_rabbitt_appetite, 1)
 #
 # When supply >= demand: nutrition = 1, deaths at baseline.
 # When supply < demand:  nutrition < 1, effective lifespan shortens.
@@ -17,8 +17,8 @@
 # as population doubles, food per rabbit halves and deaths per rabbit double.
 #
 # Carrying capacity derivation (births = deaths at equilibrium):
-#   pop * B = pop / (L * a_norm_nutr)  =>  a_norm_nutr = 1 / (B * L) = 1/6
-#   a_norm_nutr = p_replenishment / (pop * p_rabbitt_appetite)
+#   pop * B = pop / (L * c_norm_nutr)  =>  c_norm_nutr = 1 / (B * L) = 1/6
+#   c_norm_nutr = p_replenishment / (pop * p_rabbitt_appetite)
 #   pop_eq = 6 * p_replenishment / p_rabbitt_appetite = 6 * 1530/10 = 918
 
 library(deSolve)
@@ -39,11 +39,11 @@ model <- function(time, stocks, params) {
 
     # food: can supply keep up with demand?
     f_carrots_eaten        <- s_rabbit_population * p_rabbitt_appetite
-    a_food_per_rabbit      <- p_replenishment / max(s_rabbit_population, 0.001)
-    a_normalized_nutrition <- min(a_food_per_rabbit / p_rabbitt_appetite, 1)
+    c_food_per_rabbit      <- p_replenishment / max(s_rabbit_population, 0.001)
+    c_normalized_nutrition <- min(c_food_per_rabbit / p_rabbitt_appetite, 1)
 
     f_births <- s_rabbit_population * p_births_normal
-    f_deaths <- s_rabbit_population / (p_average_lifetime * a_normalized_nutrition)
+    f_deaths <- s_rabbit_population / (p_average_lifetime * c_normalized_nutrition)
 
     ds_rabbits_dt <- f_births - f_deaths
 
@@ -52,8 +52,8 @@ model <- function(time, stocks, params) {
       births               = f_births,
       deaths               = f_deaths,
       carrots_eaten        = f_carrots_eaten,
-      normalized_nutrition = a_normalized_nutrition,
-      nutritional_stress   = 1 / a_normalized_nutrition
+      normalized_nutrition = c_normalized_nutrition,
+      nutritional_stress   = 1 / c_normalized_nutrition
     ))
   })
 }

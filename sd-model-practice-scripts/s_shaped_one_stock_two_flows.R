@@ -1,4 +1,4 @@
-#One Stock, net inflow 
+﻿#One Stock, net inflow 
 #System Dynamics Modelling with R, Econ Model two flows, PDF pg 56
 
 #set time and step
@@ -9,21 +9,21 @@ simtime <- seq(START, FINISH, by=STEP)
 stocks <- c(s_machines = 100)
 
 #define model parameters
-auxs <- c(a_depr_fraction = 0.1, 
-          a_reinvest_fraction = 0.2,
-          a_labour = 100)
+auxs <- c(c_depr_fraction = 0.1, 
+          c_reinvest_fraction = 0.2,
+          c_labour = 100)
 
 model <- function(time, stocks, auxs){
   with(as.list(c(stocks, auxs)),{
-    a_economic_output <- a_labour * sqrt(s_machines)
-    f_investing <- a_economic_output * a_reinvest_fraction
-    f_discarding <- s_machines * a_depr_fraction
+    c_economic_output <- c_labour * sqrt(s_machines)
+    f_investing <- c_economic_output * c_reinvest_fraction
+    f_discarding <- s_machines * c_depr_fraction
     dm_dt <- f_investing - f_discarding
     
     return (list(c(dm_dt), 
                  investing = f_investing,
                  discarding = f_discarding, 
-                 economic_output = a_economic_output))
+                 economic_output = c_economic_output))
   })
 }
 

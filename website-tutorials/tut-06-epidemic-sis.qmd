@@ -184,6 +184,8 @@ Note that `total population = Healthy + Sick` is conserved — the model has no 
 
 ## Model function
 
+The model follows the standard `deSolve` function signature. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `c_` converters, `f_` flows).
+
 ```{r}
 #| label: model
 
@@ -368,36 +370,6 @@ run_e %>%
 
 Without recovery, sick people grow in a classic S-shape — slow at first (few sick), then rapid (positive loop dominates), then levelling off as the healthy pool is exhausted (negative loop B2 dominates). The system reaches a new equilibrium of `Sick = 100, Healthy = 0`.
 
-# Equilibrium
-
-At equilibrium, inflow equals outflow for both stocks:
-
-$$\text{Catching Illness} = \text{Recovering}$$
-
-Substituting the model equations:
-
-$$H^* \times \frac{S^*}{N} \times PI \times PC = \frac{S^*}{D}$$
-
-Where $N = H^* + S^* = 100$ is the fixed total population. Dividing both sides by $S^*$ (assuming $S^* \neq 0$) and rearranging:
-
-$$H^* = \frac{N}{PI \times PC \times D} = \frac{100}{10 \times 0.5 \times 0.5} = \frac{100}{2.5} = 40$$
-
-Therefore:
-
-$$S^* = N - H^* = 100 - 40 = 60$$
-
-The system always settles at **40 healthy, 60 sick** — regardless of initial conditions — as long as $S_0 > 0$. This equilibrium is confirmed by all the runs above (a, c, and d all converge to the same values).
-
-```{r}
-#| label: verify-equilibrium
-
-sim_results %>%
-  filter(name %in% c("s_healthy", "s_sick"),
-         time == max(time)) %>%
-  select(run, name, value) %>%
-  mutate(value = round(value, 2)) %>%
-  pivot_wider(names_from = name, values_from = value)
-```
 
 # Conclusion
 
@@ -407,8 +379,6 @@ This tutorial demonstrated S-shaped growth emerging from a two-stock SIS epidemi
 
 2. **The product of two stocks creates nonlinearity.** The catching illness rate is proportional to `Healthy × (Sick/Total)`, which is what generates the characteristic S-shape without any lookup table.
 
-3. **Equilibrium can be derived algebraically.** Setting catching illness equal to Recovering and solving gives $H^* = N / (PI \times PC \times D)$ — a clean formula for the stable endemic level.
+3. **Initial conditions determine trajectory, not destination.** All positive-$S_0$ runs converge to the same equilibrium; only the path differs.
 
-4. **Initial conditions determine trajectory, not destination.** All positive-$S_0$ runs converge to the same equilibrium; only the path differs.
-
-5. **Removing recovery eliminates the stable interior equilibrium.** Without recovery (run e), the only equilibrium is full infection — confirming that B1 is essential for containing the epidemic.
+4. **Removing recovery eliminates the stable interior equilibrium.** Without recovery (run e), the only equilibrium is full infection — confirming that B1 is essential for containing the epidemic.

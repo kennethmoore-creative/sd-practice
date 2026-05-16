@@ -1,4 +1,4 @@
-# S-Shaped Growth Structure 1 — Rabbit Population with Density-Dependent Deaths
+﻿# S-Shaped Growth Structure 1 — Rabbit Population with Density-Dependent Deaths
 # Road Maps 5: Generic Structures — S-Shaped Growth I (D-4432-2, Section: S-Shaped Growth Structure 1)
 # One stock, two flows. Positive feedback (births) initially dominates; as density rises a nonlinear
 # deaths multiplier causes the negative loop to take over -> S-shaped growth.
@@ -27,20 +27,20 @@ params <- c(p_births_normal       = 1.5,   # 1/year
 model <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
-    a_population_density <- s_rabbit_population / p_area                                   # rabbits/acre
-    a_normalized_density <- a_population_density / p_normal_pop_density                    # dimensionless
-    a_deaths_multiplier  <- deaths_mult_fn(a_normalized_density)                           # dimensionless
+    c_population_density <- s_rabbit_population / p_area                                   # rabbits/acre
+    c_normalized_density <- c_population_density / p_normal_pop_density                    # dimensionless
+    c_deaths_multiplier  <- deaths_mult_fn(c_normalized_density)                           # dimensionless
 
     f_births <- s_rabbit_population * p_births_normal                                      # rabbits/year
-    f_deaths <- (s_rabbit_population / p_average_lifetime) * a_deaths_multiplier           # rabbits/year
+    f_deaths <- (s_rabbit_population / p_average_lifetime) * c_deaths_multiplier           # rabbits/year
 
     ds_dt <- f_births - f_deaths
 
     return(list(c(ds_dt),
                 births             = f_births,
                 deaths             = f_deaths,
-                population_density = a_population_density,
-                deaths_multiplier  = a_deaths_multiplier))
+                population_density = c_population_density,
+                deaths_multiplier  = c_deaths_multiplier))
   })
 }
 

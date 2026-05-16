@@ -1,4 +1,4 @@
-# S-Shaped Growth Structure 2 — SIS Epidemic Model
+﻿# S-Shaped Growth Structure 2 — SIS Epidemic Model
 # Road Maps 5: Generic Structures — S-Shaped Growth I (D-4432-2, Section: S-Shaped Growth Structure 2)
 # Two stocks: Healthy People and Sick People. No permanent immunity — recovered people return to healthy.
 # Infection rate is driven by the product of healthy and sick people (contact probability),
@@ -20,10 +20,10 @@ params <- c(p_duration_of_illness     = 0.5,   # months
 model <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
-    a_total_population  <- s_healthy + s_sick                                              # people
-    a_prob_contact_sick <- s_sick / a_total_population                                     # dimensionless
+    c_total_population  <- s_healthy + s_sick                                              # people
+    c_prob_contact_sick <- s_sick / c_total_population                                     # dimensionless
 
-    f_catching_illness  <- s_healthy * a_prob_contact_sick *
+    f_catching_illness  <- s_healthy * c_prob_contact_sick *
                            p_population_interactions * p_prob_catching                     # people/month
     f_recovery_rate     <- s_sick / p_duration_of_illness                                  # people/month
 

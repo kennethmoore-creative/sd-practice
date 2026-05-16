@@ -168,6 +168,8 @@ params <- c(p_goal            = 100,  # units — desired level of the stock
 
 Now we define the model. Notice that the gap is expressed as `p_goal - s_stock`. This is the critical difference from the previous tutorial: the flow inherits its sign directly from the gap, so no manual sign correction is needed on `ds_dt`.
 
+The model follows the standard `deSolve` function signature. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `c_` converters, `f_` flows).
+
 ```{r model}
 model <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {

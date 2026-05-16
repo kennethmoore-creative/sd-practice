@@ -28,6 +28,8 @@ website:
             text: "6: SIS Epidemic"
           - href: tut-07-oscillation-pendulum.qmd
             text: "7: Oscillation"
+          - href: tut-08-damped-oscillations.qmd
+            text: "8: Damped Oscillations"
 
 format:
   html:

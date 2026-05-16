@@ -52,7 +52,7 @@ We will first experiment by testing the effects of changing the initial value of
 
 ## R Modelling Tutorial
 
-First, wrap up the entire simulation model into a single nested function.
+First, wrap up the entire simulation model into a single nested function. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `c_` converters, `f_` flows).
 
 ``` {r}
 #| label: adjusted

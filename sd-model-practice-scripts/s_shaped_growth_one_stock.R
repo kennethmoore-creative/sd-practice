@@ -1,4 +1,4 @@
-#One Stock, net inflow 
+﻿#One Stock, net inflow 
 #System Dynamics Modelling with R, Limits to growth, PDF pg 49
 
 #set time and step
@@ -9,24 +9,24 @@ simtime <- seq(START, FINISH, by=STEP)
 stocks <- c(s_stock = 100)
 
 #define model parameters
-auxs <- c(a_capacity = 10000, 
-          a_ref_availability = 1,
-          a_ref_growth_rate = 0.1)
+auxs <- c(c_capacity = 10000, 
+          c_ref_availability = 1,
+          c_ref_growth_rate = 0.1)
 
 #define model
 model <- function(time, stocks, auxs){
   with(as.list(c(stocks, auxs)),{
-    a_availability <- 1 - s_stock / a_capacity
-    a_effect <- a_availability / a_ref_availability
-    a_growth_rate <- a_ref_growth_rate * a_effect
-    f_net_flow <- s_stock * a_growth_rate
+    c_availability <- 1 - s_stock / c_capacity
+    c_effect <- c_availability / c_ref_availability
+    c_growth_rate <- c_ref_growth_rate * c_effect
+    f_net_flow <- s_stock * c_growth_rate
     ds_dt <- f_net_flow
     
     return (list(c(ds_dt), 
                  net_flow = f_net_flow,
-                 growth_rate = a_growth_rate, 
-                 effect = a_effect,
-                 availability = a_availability))
+                 growth_rate = c_growth_rate, 
+                 effect = c_effect,
+                 availability = c_availability))
   })
 }
 

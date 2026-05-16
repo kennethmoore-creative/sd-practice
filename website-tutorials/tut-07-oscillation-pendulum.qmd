@@ -18,7 +18,7 @@ source("../R/sd-diagram-functions.R")
 
 ## Introduction: What Is Sustained Oscillation?
 
-Many real systems cycle up and down indefinitely — a pendulum swings back and forth, employment levels in an industry rise and fall on multi-year cycles, blood sugar oscillates around a set point. This behaviour is called **sustained oscillation**.
+Many real systems cycle up and down  — a pendulum swings back and forth, employment levels in an industry rise and fall on multi-year cycles, blood sugar oscillates around a set point. This behaviour is called **sustained oscillation**.
 
 Sustained oscillation is a fundamentally different mode of behaviour from the three we have seen so far:
 
@@ -29,7 +29,7 @@ Sustained oscillation is a fundamentally different mode of behaviour from the th
 | S-shaped growth | One stock, competing reinforcing and balancing loops |
 | **Sustained oscillation** | **Two stocks, cross-coupled flows** |
 
-The last row reveals a key result: **a single-stock system cannot oscillate sustainably**. A single stock always converges to equilibrium or diverges. Two stocks, linked in the right way, can sustain oscillation indefinitely.
+The last row reveals a key result: **a single-stock system cannot oscillate sustainably**. A single stock always converges to equilibrium or diverges. Two stocks, linked in the right way, can sustain oscillation.
 
 ---
 
@@ -65,6 +65,7 @@ ggplot() +
   annotate("segment", x = 1.45, xend = 5.4, y = 6.0, yend = 6.0,
            linewidth = 2, colour = "#4e8cd4",
            arrow = flow_arrow) +
+  annotate("point", x = nf1_valve_x, y = 6.0, size = 5, colour = "#4e8cd4") +
   annotate("text", x = nf1_valve_x, y = 6.5,
            label = "Net Flow 1", size = 3.2, colour = "#4e8cd4") +
   annotate("text", x = nf1_valve_x-1.5, y = 8.2,
@@ -84,6 +85,7 @@ ggplot() +
   annotate("segment", x = 8.55, xend = 4.6, y = 3.8, yend = 3.8,
            linewidth = 2, colour = "#4e8cd4",
            arrow = flow_arrow) +
+  annotate("point", x = nf2_valve_x, y = 3.8, size = 5, colour = "#4e8cd4") +
   annotate("text", x = nf2_valve_x, y = 3.2,
            label = "Net Flow 2", size = 3.2, colour = "#4e8cd4") +
   annotate("text", x = nf2_valve_x-1.5, y = 1.3,
@@ -196,7 +198,7 @@ ggplot() +
            size = 3.2, fontface = "bold") +
 
   # --- Parameters (plain text) ---
-  annotate("text", x = 9.2, y = 3.3, label = "Desired\nPosition",
+  annotate("text", x = 9.2, y = 2.9, label = "Desired\nPosition",
            size = 3.0, hjust = 0.5) +
   annotate("text", x = 7.0, y = 0.52, label = "Gravity (g)",
            size = 3.0, hjust = 0.5) +
@@ -250,7 +252,7 @@ ggplot() +
 
 ## Model Equations
 
-From Appendix 2 of D-4426-3, the equations are:
+The equations are:
 
 $$\frac{d(\text{Position})}{dt} = \text{Velocity}$$
 
@@ -341,7 +343,7 @@ All further runs use `method = "rk4"`.
 
 ### Model Function
 
-The model follows the standard `deSolve` function signature. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `a_` auxiliaries, `f_` flows).
+The model follows the standard `deSolve` function signature. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `c_` converters, `f_` flows).
 
 ```{r}
 #| label: model-function
@@ -424,41 +426,6 @@ sim_data |>
 
 ---
 
-## Period of Oscillation
-
-For a small-angle pendulum, the period (time for one complete cycle) is given by:
-
-$$T = 2\pi \sqrt{\frac{L}{g}}$$
-
-With $L = 1$ metre and $g = 9.8 \text{ m/s}^2$:
-
-$$T = 2\pi \sqrt{\frac{1}{9.8}} \approx 2.007 \text{ seconds}$$
-
-```{r}
-#| label: period
-
-T_theoretical <- 2 * pi * sqrt(params["p_length_of_pendulum"] / params["p_gravity"])
-cat("Theoretical period:", round(T_theoretical, 3), "seconds\n")
-```
-
-We can verify this empirically from the simulation. The position first reaches zero at $T/4 \approx 0.50$ seconds (the first zero-crossing after release), so the full period should be four times that.
-
-```{r}
-#| label: period-empirical
-
-# First zero-crossing of position (after time 0)
-first_cross <- sim_data |>
-  filter(time > 0, abs(s_position) == min(abs(s_position[time > 0]))) |>
-  slice(1)
-
-cat("First zero-crossing at t =", round(first_cross$time, 3), "seconds\n")
-cat("Implied period:", round(first_cross$time * 4, 3), "seconds\n")
-```
-
-The empirical period matches the theoretical value closely, confirming that the model is correctly solving the equations of motion.
-
----
-
 ## Summary
 
 - Sustained oscillation requires **two stocks** with **cross-coupled flows** — each flow driven by the opposite stock.
@@ -467,4 +434,4 @@ The empirical period matches the theoretical value closely, confirming that the 
 - The pendulum equations are:
   - $d(\text{Position})/dt = \text{Velocity}$
   - $d(\text{Velocity})/dt = (g/L) \times \text{Gap}$
-- The period follows from physics: $T = 2\pi\sqrt{L/g} \approx 2.007$ seconds for a 1-metre pendulum.
+

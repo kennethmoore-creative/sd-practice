@@ -18,3 +18,4 @@ These tutorials derive from the [Road Maps](https://ocw.mit.edu/courses/sloan-sc
 | [S-Shaped Growth](tut-05-s-shaped-growth.qmd) | Combined positive and negative feedback |
 | [S-Shaped Growth — SIS Epidemic](tut-06-epidemic-sis.qmd) | Two-stock epidemic structure; product-driven nonlinearity |
 | [Sustained Oscillation — The Pendulum](tut-07-oscillation-pendulum.qmd) | Two-stock cross-coupled structure; RK4 integration |
+| [Damped Oscillations — The Real Pendulum](tut-08-damped-oscillations.qmd) | Friction as a structural factor; amplitude decay; phase portrait spiral |

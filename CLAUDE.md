@@ -99,6 +99,10 @@ flow = adjustment_gap / time_constant       # outflow
 - **S-shaped growth Structure 2**: two stocks (Healthy / Sick), SIS epidemic structure (no permanent immunity); infection rate driven by product of healthy and sick stocks — `Catching_Illness = Healthy * (Sick/Total) * Population_Interactions * P_Catching`. Key insight: S-shaped growth is a **behavior**, not a structure — two mechanistically different structures can produce it.
 - **Model validity**: structural, behavioral, and policy-implication tests (Shreckengost)
 
+## Tutorial Writing Style
+
+- **No algebraic equilibrium derivations.** Do not include sections that work through the algebra to derive an equilibrium analytically (e.g. setting inflow = outflow and solving for the stock). The simulation and plots demonstrate the behaviour; the algebra adds length without pedagogical value in this context. Conclusion sections should stay conceptual — key structural and behavioural insights only.
+
 ## Workflow
 
 1. **Explore** — build a plain `.R` script in the root folder to get the model working interactively
@@ -242,9 +246,8 @@ Prefix all variables by type so the model structure is self-documenting:
 |--------|------|---------|
 | `s_` | stock | `s_inventory`, `s_employment` |
 | `p_` | parameter / constant | `p_productivity`, `p_hiring_delay` |
-| `a_` | auxiliary / converter | `a_availability`, `a_growth_rate` |
+| `c_` | converter / calculated intermediate | `c_growth_rate`, `c_inv_gap`, `c_hiring_need` |
 | `f_` | flow | `f_net_flow`, `f_changing_employment` |
-| `c_` | calculated intermediate | `c_inv_gap`, `c_hiring_need` |
 
 ## Integration Method
 

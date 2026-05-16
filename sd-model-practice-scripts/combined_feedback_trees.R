@@ -1,4 +1,4 @@
-# Combined Feedback in First-Order Systems — Eddie's Tree Nursery
+﻿# Combined Feedback in First-Order Systems — Eddie's Tree Nursery
 # Road Maps 5: Beginner Modelling Exercises Section 5 (D-4593-2)
 # One stock (Trees), one inflow (Planting), one outflow (Sales).
 # Four examples demonstrate the four possible behaviors when positive and negative
@@ -84,15 +84,15 @@ density_mult_fn <- approxfun(density_mult_x, density_mult_y, rule = 2)
 
 model_ex4 <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
-    a_density         <- s_trees / p_area                             # trees/sq_yard
-    a_density_mult    <- density_mult_fn(a_density)                   # dimensionless
-    f_planting        <- p_planting_fraction * s_trees * a_density_mult  # trees/year
+    c_density         <- s_trees / p_area                             # trees/sq_yard
+    c_density_mult    <- density_mult_fn(c_density)                   # dimensionless
+    f_planting        <- p_planting_fraction * s_trees * c_density_mult  # trees/year
     f_sales           <- p_sales_fraction * s_trees                   # trees/year
     ds_dt             <- f_planting - f_sales
     return(list(c(ds_dt),
                 planting         = f_planting,
                 sales            = f_sales,
-                density_multiplier = a_density_mult))
+                density_multiplier = c_density_mult))
   })
 }
 

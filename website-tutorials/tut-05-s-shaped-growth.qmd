@@ -221,6 +221,8 @@ params_s1 <- c(
 )
 ```
 
+The model follows the standard `deSolve` function signature. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `c_` converters, `f_` flows).
+
 ```{r s1-model}
 model_s1 <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {

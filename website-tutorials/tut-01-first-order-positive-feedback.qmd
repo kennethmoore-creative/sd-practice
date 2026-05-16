@@ -151,6 +151,8 @@ params <- c(compounding_fraction = 0.05)  # (unit/unit)/time
 
 Next we can define the model by specifying how all the variables are related. We'll construct an first-order ordinary differential equation (ODE), but it's far more straight forward than it sounds. Every element of the differential equation corresponds directly to the visual components of the generic structure above.
 
+The model follows the standard `deSolve` function signature. Variable names use the project's prefix convention (`s_` stocks, `p_` parameters, `c_` converters, `f_` flows).
+
 ```{r}
 #| label: model
 
