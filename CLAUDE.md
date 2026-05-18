@@ -125,7 +125,7 @@ The `website-tutorials/` folder is a Quarto website published to GitHub Pages. E
 2. Run `Rscript splice_bio.R` from the project root — this reads `bio.md`, converts it to HTML, and writes it into `index.html` between the `<!-- BIO_START -->` and `<!-- BIO_END -->` markers. The markers remain in `index.html` after every run, so the splicer will always find them.
 3. Do **not** remove or edit the `<!-- BIO_START -->` / `<!-- BIO_END -->` comment markers in `index.html` — the splicer depends on them. If they go missing the script will error.
 
-**When adding a new `.qmd` tutorial to `website-tutorials/`, always update both:**
+**When adding a new `.qmd` tutorial to `website-tutorials/`, always update all three:**
 
 1. `website-tutorials/_quarto.yml` — add a navbar entry:
    ```yaml
@@ -136,6 +136,15 @@ The `website-tutorials/` folder is a Quarto website published to GitHub Pages. E
    ```markdown
    | [X](tut-XX-your-tutorial-name.qmd) | Full Tutorial Title | Key concept |
    ```
+3. `website-tutorials/index.html` — add a card to the tutorial grid (the landing page cards are hardcoded and do not auto-update):
+   ```html
+   <a href="tut-XX-your-tutorial-name.html" class="tutorial-card">
+     <div class="tutorial-num">XX &middot; System Dynamics</div>
+     <h4>Full Tutorial Title</h4>
+     <p>Key concept</p>
+   </a>
+   ```
+   Then run `Rscript splice_bio.R` and `quarto render` to push the change into `_site/`.
 
 ## R function library (`R/`)
 
