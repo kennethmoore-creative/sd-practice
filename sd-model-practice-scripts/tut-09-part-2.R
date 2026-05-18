@@ -28,105 +28,109 @@ library(deSolve)
 #
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── Logistic fit summary (from part 1 — nls / SSfpl) ─────────────────────────
 
-# ------------------------------------------------------------------------------
-# SECTION 1: load and explore the data
-# ------------------------------------------------------------------------------
+tibble(
+  parameter = c("K — upper asymptote", "L — lower asymptote", "r (growth rate)", "t0 (inflection month)"),
+  value     = c(68.6, 10.1, 0.480, 8.8)
+) |> print()
 
-# ── Step 1: Raw data (wide format — as received from HR system / Excel export)─
-#
-# Monthly count of staff recorded as working at reduced capacity due to burnout.
-# Figures are rounded to the nearest whole number.
-
-wide_data <- tribble(
+raw_data <- tribble(
   ~period,   ~burnt_out_staff,
   "Jan-23",  11,
   "Feb-23",  12,
-  "Mar-23",  12,
-  "Apr-23",  11,
-  "May-23",  15,
-  "Jun-23",  14,
-  "Jul-23",  14,
-  "Aug-23",  16,
-  "Sep-23",  19,
-  "Oct-23",  21,
-  "Nov-23",  17,
-  "Dec-23",  27,
-  "Jan-24",  30,
-  "Feb-24",  35,
-  "Mar-24",  39,
-  "Apr-24",  43,
-  "May-24",  42,
-  "Jun-24",  48,
-  "Jul-24",  47,
-  "Aug-24",  50,
-  "Sep-24",  51,
-  "Oct-24",  51,
-  "Nov-24",  48,
-  "Dec-24",  50
+  "Mar-23",  17,
+  "Apr-23",  13,
+  "May-23",  19,
+  "Jun-23",  21,
+  "Jul-23",  24,
+  "Aug-23",  39,
+  "Sep-23",  35,
+  "Oct-23",  49,
+  "Nov-23",  57,
+  "Dec-23",  59,
+  "Jan-24",  63,
+  "Feb-24",  61,
+  "Mar-24",  59,
+  "Apr-24",  66,
+  "May-24",  70,
+  "Jun-24",  65,
+  "Jul-24",  69,
+  "Aug-24",  67,
+  "Sep-24",  71,
+  "Oct-24",  72,
+  "Nov-24",  68,
+  "Dec-24",  70
 )
 
-print(wide_data)
+print(raw_data)
 
 # ── Step 2: Reshape to tidy format ────────────────────────────────────────────
 
-tidy_data <- wide_data |>
+tidy_data <- raw_data |>
   mutate(date = as.Date(paste0("01-", period), format = "%d-%b-%y")) |>
   arrange(date) |>
   mutate(t = row_number())
 
-# ── Step 3: Plot ──────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
+# SECTION 3: simple logistic SD model from nls parameters
+# ------------------------------------------------------------------------------
 
-ggplot(tidy_data, aes(x = date, y = burnt_out_staff)) +
-  geom_line(linewidth = 0.8, colour = "#619CFF") +
-  geom_point(size = 1.8, colour = "#619CFF") +
-  geom_hline(yintercept = 25, linetype = "dashed",
-             colour = "grey40", linewidth = 0.5) +
-  annotate("text", x = min(tidy_data$date), y = 17,
-           label = "Target: < 25 staff", colour = "grey40",
-           size = 3, hjust = 0) +
-  scale_y_continuous(limits = c(0, 65)) +
-  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
-  labs(
-    title    = "Staff Burnout — Post-Redundancy Trend (2023–2024)",
-    subtitle = "S-shaped growth: stress spreads faster than management responds; equilibrium far above target",
-    x        = NULL,
-    y        = "Staff on reduced capacity (count)"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+# The nls fit gives us K, L, r, and t0 directly. The ODE that produces the
+# same S-shaped trajectory is just the logistic growth equation:
+#
+#   ds/dt = r * (s − L) * (1 − (s − L) / (K − L))
+#
+# (s − L) is how far above the baseline the stock currently sits.
+# (1 − (s − L)/(K − L)) is how much room is left before the ceiling K.
+# When s is near L the second term ≈ 1 and growth is near-exponential.
+# When s approaches K the second term → 0 and growth halts.
+#
+# No auxiliary variables, no threshold logic — just the three nls parameters
+# plugged straight into one net-flow formula.
 
-# ── Step 4: Linear regression baseline ────────────────────────────────────────
+p_K <- 68.6
+p_L <- 10.1
+p_r <- 0.480
 
-lm_fit  <- glm(burnt_out_staff ~ t, data = tidy_data, family = gaussian)
-r_sq_lm <- 1 - lm_fit$deviance / lm_fit$null.deviance
+logistic_model <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    f_net <- p_r * (s_burnt_out - p_L) * (1 - (s_burnt_out - p_L) / (p_K - p_L))
+    list(c(f_net))
+  })
+}
 
-lm_fitted_curve <- tibble(
-  date   = seq(min(tidy_data$date), max(tidy_data$date), length.out = 200),
-  fitted = predict(lm_fit,
-                   newdata = tibble(t = seq(1, max(tidy_data$t), length.out = 200)))
-)
+sim_logistic <- ode(
+  y      = c(s_burnt_out = 11),
+  times  = seq(1, 24, by = 0.1),
+  parms  = c(p_K = p_K, p_L = p_L, p_r = p_r),
+  func   = logistic_model,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(
+    time        = as.numeric(time),
+    s_burnt_out = as.numeric(s_burnt_out),
+    date        = as.Date("2023-01-01") + (time - 1) * 30.44
+  )
 
 ggplot() +
-  geom_line(data  = tidy_data,
-            aes(x = date, y = burnt_out_staff),
-            linewidth = 0.6, colour = "#619CFF", alpha = 0.5) +
   geom_point(data = tidy_data,
              aes(x = date, y = burnt_out_staff),
-             size = 1.5, colour = "#619CFF", alpha = 0.5) +
-  geom_line(data  = lm_fitted_curve,
-            aes(x = date, y = fitted),
-            linewidth = 1.2, colour = "#619CFF") +
+             colour = "grey50", size = 1.8, alpha = 0.7) +
+  geom_line(data = sim_logistic,
+            aes(x = date, y = s_burnt_out),
+            colour = "#619CFF", linewidth = 1.0) +
   geom_hline(yintercept = 25, linetype = "dashed",
              colour = "grey40", linewidth = 0.5) +
-  annotate("text", x = min(tidy_data$date), y = 27,
+  annotate("text", x = as.Date("2023-01-01"), y = 17,
            label = "Target: < 25 staff", colour = "grey40",
            size = 3, hjust = 0) +
-  scale_y_continuous(limits = c(0, 65)) +
+  scale_y_continuous(limits = c(0, 75)) +
   scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
   labs(
-    title    = "Staff Burnout — Linear Model Fit",
-    subtitle = paste0("Gaussian GLM  |  R² = ", round(r_sq_lm, 3)),
+    title    = "Staff Burnout — Simple Logistic SD Model",
+    subtitle = "Parameters taken directly from nls fit  |  Grey points: observed data",
     x        = NULL,
     y        = "Staff on reduced capacity (count)"
   ) +
@@ -135,84 +139,59 @@ ggplot() +
 
 
 # ------------------------------------------------------------------------------
-# SECTION 2: fit a logistic curve using binomial GLM
+# SECTION 3a: decompose the net flow into explicit inflow and outflow
 # ------------------------------------------------------------------------------
 
-# ── Handling a non-zero lower asymptote ───────────────────────────────────────
-# The burnout count does not start near zero — 11 staff were already affected
-# at the start of observation. The logistic curve therefore has a non-zero
-# lower asymptote (L ≈ 11). The rescaling must account for both ends:
+# Expanding r*(s−L)*(1−(s−L)/(K−L)) algebraically gives two terms:
 #
-#   1. Estimate L as the minimum observed value.
-#   2. Estimate K as the average of the top 5 observed values.
-#   3. Rescale: y_scaled = (y − L) / (K − L), mapping the data to [0, 1].
-#   4. Fit binomial GLM on the rescaled data.
-#   5. Reverse-scale: y_fitted = L + plogis(b0 + b1*t) × (K − L).
+#   f_in  = r * (s − L)              ← R1: contagion scales with active burnout
+#   f_out = r * (s − L)² / (K − L)  ← B1: recovery drag grows as capacity fills
 #
-# r and t0 are unchanged by this rescaling; only the amplitude is normalised.
+# The curve is identical to Section 3 — only the structure is now visible.
+# Both flows share r, so the spread rate cancels at equilibrium:
+#   setting f_in = f_out → s* = L + (K − L) = K
+# The equilibrium is determined purely by K and L, not by r.
+# r controls only the speed of approach, not where the system ends up.
 
-N <- 1000
+logistic_decomposed <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    f_in  <- p_r * (s_burnt_out - p_L)
+    f_out <- p_r * (s_burnt_out - p_L)^2 / (p_K - p_L)
+    list(c(f_in - f_out), inflow = f_in, outflow = f_out)
+  })
+}
 
-y     <- tidy_data$burnt_out_staff
-t_seq <- tidy_data$t
-
-K_hat <- mean(sort(y, decreasing = TRUE)[1:5])
-L_hat <- min(y)
-
-y_scaled <- pmin((y - L_hat) / (K_hat - L_hat), 0.9999)
-
-fit <- glm(
-  cbind(round(y_scaled * N), round((1 - y_scaled) * N)) ~ t_seq,
-  family = binomial(link = "logit")
-)
-
-b0 <- coef(fit)[["(Intercept)"]]
-b1 <- coef(fit)[["t_seq"]]
-
-r_fit  <- b1
-t0_fit <- -b0 / b1
-
-tibble(
-  parameter = c("K (estimated)", "L — lower asymptote", "r (fitted)", "t0 (fitted)"),
-  value     = c(round(K_hat, 1), round(L_hat, 1), round(r_fit, 3), round(t0_fit, 1))
-) |> print()
-
-# R² comparison — both computed in original y-units (correlation of fitted vs observed)
-r_sq_glm <- cor(y, L_hat + plogis(b0 + b1 * t_seq) * (K_hat - L_hat))^2
-
-tibble(
-  model     = c("Linear (gaussian GLM)", "Logistic (binomial GLM)"),
-  r_squared = round(c(r_sq_lm, r_sq_glm), 3)
-) |> print()
-
-t_fine   <- seq(1, max(t_seq), length.out = 200)
-y_fitted <- L_hat + plogis(b0 + b1 * t_fine) * (K_hat - L_hat)
-
-fitted_curve <- tibble(
-  date   = seq(min(tidy_data$date), max(tidy_data$date), length.out = 200),
-  fitted = y_fitted
-)
+sim_decomposed <- ode(
+  y      = c(s_burnt_out = 11),
+  times  = seq(1, 24, by = 0.1),
+  parms  = c(p_K = p_K, p_L = p_L, p_r = p_r),
+  func   = logistic_decomposed,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(
+    time        = as.numeric(time),
+    s_burnt_out = as.numeric(s_burnt_out),
+    date        = as.Date("2023-01-01") + (time - 1) * 30.44
+  )
 
 ggplot() +
-  geom_line(data  = tidy_data,
-            aes(x = date, y = burnt_out_staff),
-            linewidth = 0.6, colour = "#619CFF", alpha = 0.5) +
   geom_point(data = tidy_data,
              aes(x = date, y = burnt_out_staff),
-             size = 1.5, colour = "#619CFF", alpha = 0.5) +
-  geom_line(data  = fitted_curve,
-            aes(x = date, y = fitted),
-            linewidth = 1.2, colour = "#619CFF") +
+             colour = "grey50", size = 1.8, alpha = 0.7) +
+  geom_line(data = sim_decomposed,
+            aes(x = date, y = s_burnt_out),
+            colour = "#619CFF", linewidth = 1.0) +
   geom_hline(yintercept = 25, linetype = "dashed",
              colour = "grey40", linewidth = 0.5) +
-  annotate("text", x = min(tidy_data$date), y = 17,
+  annotate("text", x = as.Date("2023-01-01"), y = 17,
            label = "Target: < 25 staff", colour = "grey40",
            size = 3, hjust = 0) +
-  scale_y_continuous(limits = c(0, 65)) +
+  scale_y_continuous(limits = c(0, 75)) +
   scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
   labs(
-    title    = "Staff Burnout — Fitted Logistic Curve",
-    subtitle = "Faint: observed data  |  Solid: rescaled-binomial GLM fit",
+    title    = "Staff Burnout — Decomposed Inflow / Outflow",
+    subtitle = "Identical curve to Section 3; inflow and outflow now explicit",
     x        = NULL,
     y        = "Staff on reduced capacity (count)"
   ) +
@@ -221,7 +200,76 @@ ggplot() +
 
 
 # ------------------------------------------------------------------------------
-# SECTION 3: SD model with policy and operational levers
+# SECTION 3b: rename flows and parameters to operational language
+# ------------------------------------------------------------------------------
+
+# Same model as 3a with organisational names:
+#
+#   r       → p_spread_rate   monthly rate at which burnout spreads through the team
+#   K − L   → p_capacity      how many additional staff can be affected before
+#                              density-dependent recovery arrests further growth
+#   L       → p_baseline      pre-existing burnout at the start of observation
+#
+# Seeded from nls:
+#   p_spread_rate = r         = 0.480
+#   p_capacity    = K − L     = 68.6 − 10.1 = 58.5
+#   p_baseline    = L         = 10.1
+#
+# Equilibrium: s* = p_baseline + p_capacity = 10.1 + 58.5 = 68.6
+# To reach target K < 25, management would need p_capacity < 14.9 —
+# a 75% reduction. That motivates the richer threshold model in Section 4,
+# which gives independent levers on both the speed and the ceiling.
+
+model_burnout_simple <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    f_burning_out <- p_spread_rate * (s_burnt_out - p_baseline)
+    f_recovering  <- p_spread_rate * (s_burnt_out - p_baseline)^2 / p_capacity
+    list(c(f_burning_out - f_recovering),
+         burning_out = f_burning_out,
+         recovering  = f_recovering)
+  })
+}
+
+sim_simple <- ode(
+  y      = c(s_burnt_out = 11),
+  times  = seq(1, 24, by = 0.1),
+  parms  = c(p_spread_rate = 0.480, p_capacity = 58.5, p_baseline = 10.1),
+  func   = model_burnout_simple,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(
+    time        = as.numeric(time),
+    s_burnt_out = as.numeric(s_burnt_out),
+    date        = as.Date("2023-01-01") + (time - 1) * 30.44
+  )
+
+ggplot() +
+  geom_point(data = tidy_data,
+             aes(x = date, y = burnt_out_staff),
+             colour = "grey50", size = 1.8, alpha = 0.7) +
+  geom_line(data = sim_simple,
+            aes(x = date, y = s_burnt_out),
+            colour = "#619CFF", linewidth = 1.0) +
+  geom_hline(yintercept = 25, linetype = "dashed",
+             colour = "grey40", linewidth = 0.5) +
+  annotate("text", x = as.Date("2023-01-01"), y = 17,
+           label = "Target: < 25 staff", colour = "grey40",
+           size = 3, hjust = 0) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  labs(
+    title    = "Staff Burnout — Operationally Named Model",
+    subtitle = "p_spread_rate, p_capacity, p_baseline seeded from nls  |  Grey points: observed data",
+    x        = NULL,
+    y        = "Staff on reduced capacity (count)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+
+# ------------------------------------------------------------------------------
+# SECTION 4: SD model with policy and operational levers
 # ------------------------------------------------------------------------------
 
 # ── Structure ─────────────────────────────────────────────────────────────────
@@ -246,20 +294,20 @@ ggplot() +
 
 model_burnout <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
-
+    
     c_intervention_effectiveness <- min(
       p_intervention_threshold / max(s_burnt_out_staff, 0.001), 1
     )
-
+    
     # R1: stress contagion spreads burnout through the team
     f_burning_out <- s_burnt_out_staff * p_spread_rate
-
+    
     # B1: management support; effective recovery window contracts above threshold
     f_recovery <- s_burnt_out_staff /
       (p_recovery_months * c_intervention_effectiveness)
-
+    
     ds_burnt_out_staff_dt <- f_burning_out - f_recovery
-
+    
     return(list(
       c(ds_burnt_out_staff_dt),
       burning_out                = f_burning_out,
@@ -273,8 +321,8 @@ model_burnout <- function(time, stocks, params) {
 # Implied K = p_intervention_threshold × p_spread_rate × p_recovery_months
 
 scenarios <- list(
-  `Current policy`  = c(p_spread_rate = 0.30, p_recovery_months = 5.2, p_intervention_threshold = 32),
-  `Earlier trigger` = c(p_spread_rate = 0.30, p_recovery_months = 5.2, p_intervention_threshold = 20),
+  `Current policy`  = c(p_spread_rate = 0.30, p_recovery_months = 7.3, p_intervention_threshold = 32),
+  `Earlier trigger` = c(p_spread_rate = 0.30, p_recovery_months = 7.3, p_intervention_threshold = 20),
   `Faster response` = c(p_spread_rate = 0.30, p_recovery_months = 4.0, p_intervention_threshold = 32),
   `Both levers`     = c(p_spread_rate = 0.30, p_recovery_months = 4.0, p_intervention_threshold = 20)
 )
@@ -314,7 +362,7 @@ ggplot(sim_results, aes(x = date, y = burnt_out_staff, colour = scenario)) +
   annotate("text", x = origin_date, y = 17,
            label = "Target: < 25 staff", colour = "grey40",
            size = 3, hjust = 0) +
-  scale_y_continuous(limits = c(0, 65)) +
+  scale_y_continuous(limits = c(0, 75)) +
   scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
   scale_colour_manual(values = c(
     "Current policy"  = "#E74C3C",
@@ -339,17 +387,17 @@ ggplot(sim_results, aes(x = date, y = burnt_out_staff, colour = scenario)) +
 #
 #   Scenario          K (implied)   Equilibrium (simulated)
 #   ──────────────────────────────────────────────────────────────────────
-#   Current policy      49.9            ~ 49       above target
-#   Earlier trigger     31.2            ~ 31       above target
+#   Current policy      70.1            ~ 70       above target  (matches K_hat)
+#   Earlier trigger     43.8            ~ 44       above target
 #   Faster response     38.4            ~ 38       above target
 #   Both levers         24.0            ~ 24       below target of 25 ✓
 #
 # Note on the "Faster response" lever: p_recovery_months cannot be reduced
 # below 1/p_spread_rate (= 3.33 months) without making the net flow negative
 # even below the intervention threshold — the spread rate must dominate
-# naturally for the S-curve to form. Reducing from 5.2 → 4.0 months
-# represents realistic organisational improvements (better occupational
-# health support, flexible working), not unlimited reduction.
+# naturally for the S-curve to form. Reducing from 7.3 → 4.0 months
+# represents a significant but achievable improvement through contractor
+# resource, occupational health support, and flexible working arrangements.
 #
 # Neither single lever reaches the target of 25. Only pulling both together
 # brings the equilibrium below it, demonstrating that the burnout trajectory
@@ -405,13 +453,13 @@ ggplot() +
   # Sink cloud
   geom_polygon(data = make_cloud(10.25, recovery_valve_y), aes(x, y),
                fill = "white", colour = "black", linewidth = 0.7) +
-
+  
   # Auxiliary chain (bold — calculated converters)
   annotate("text", x = 5.5, y = 2.75, label = "burnout\nratio",
            size = 3.0, fontface = "bold", lineheight = 0.9) +
   annotate("text", x = 5.5, y = 1.85, label = "intervention\neffectiveness",
            size = 3.0, fontface = "bold", lineheight = 0.9) +
-
+  
   # Parameters (plain text)
   annotate("text", x = 1.5,  y = 2.6,  label = "spread\nrate",
            size = 3.0, lineheight = 0.9) +
@@ -419,13 +467,13 @@ ggplot() +
            size = 3.0, lineheight = 0.9) +
   annotate("text", x = 2.9,  y = 2.75, label = "intervention\nthreshold",
            size = 3.0, lineheight = 0.9) +
-
+  
   # Info: vertical chain — stock ↓ burnout ratio ↓ intervention effectiveness
   annotate("segment", x = 5.5, xend = 5.5, y = 3.45, yend = 2.98,
            colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
   annotate("segment", x = 5.5, xend = 5.5, y = 2.52, yend = 2.08,
            colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
-
+  
   # Info: intervention threshold → burnout ratio
   geom_curve(
     data = data.frame(x = 3.35, y = 2.75, xend = 4.72, yend = 2.75),
@@ -460,7 +508,7 @@ ggplot() +
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
-
+  
   # Loop labels
   annotate("text", x = 2.7, y = 2.9, label = "R1  (+)", size = 3.8,
            colour = "#27ae60", fontface = "bold") +
@@ -469,3 +517,4 @@ ggplot() +
   theme_void() +
   coord_cartesian(xlim = c(0, 11), ylim = c(0.5, 5.1)) +
   labs(title = "Staff Burnout S-Curve — stock-and-flow diagram")
+
