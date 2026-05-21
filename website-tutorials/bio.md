@@ -1,15 +1,10 @@
-I help organisations think clearly about complex problems, understand their data, 
-train their people, and implement lasting solutions. My background spans government, 
-healthcare, and education.
+I help organisations and institutions think clearly about complex problems, emerging technologies and AI. 
+Together we build a stronger understanding of current issues and future possibilities.  We create blueprints 
+for how available data can support lasting solutions, and then we implement.  
 
-Across industries, organisations sit on immense untapped data. Problems are
-understood in fragments, and the information needed to form solutions is
-scattered behind different doors.
+I'm a builder and a facilitator. My teams connect disparate systems, erect new architectures and elevate 
+capacity & capability.  
 
-I thrive on translating business problems into technical solutions — but
-buy-in and capability are what make solutions stick. I'm an experienced educator 
-who has led classrooms, workshops, and data literacy programs for professional and 
-academic audiences, because lasting change requires more than a good model.  
-
-My practice is international. I have deep roots in Indonesia, Australia, and
+My practice is international, serving Australia, Indonesia and
 the United States, with an expanding network across Asia and beyond.
+

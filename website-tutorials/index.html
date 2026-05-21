@@ -7,7 +7,7 @@
   <meta name="description" content="Ken Moore — data scientist and educator offering analytics consulting and education services internationally. Tutorials, publications, and professional services.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&family=Fira+Sans:wght@500&display=swap" rel="stylesheet">
   <style>
     :root {
       --navy:        #1e3a5f;
@@ -436,6 +436,78 @@
       border-color: var(--navy);
     }
 
+    /* ─── Clients strip ─── */
+    .clients-strip {
+      background: var(--navy-dark);
+      padding: 2.5rem 6%;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .clients-label {
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 1.5rem;
+    }
+
+    .clients-logos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem 2.5rem;
+    }
+
+    .clients-logos img {
+      height: 36px;
+      width: auto;
+      filter: brightness(0) invert(1);
+      opacity: 0.55;
+      transition: opacity 0.2s ease;
+    }
+
+    .clients-logos img:hover {
+      opacity: 0.9;
+    }
+
+    .clients-logos img.logo-baked {
+      filter: none;
+      opacity: 1;
+    }
+
+    .logo-combo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      filter: brightness(0) invert(1);
+      opacity: 0.55;
+      transition: opacity 0.2s ease;
+    }
+
+    .logo-combo:hover { opacity: 0.9; }
+
+    .logo-combo-sm .logo-combo-img { height: 26px !important; }
+    .logo-combo-sm span { font-size: 1.05rem !important; }
+
+    .clients-logos .logo-combo img {
+      height: 36px;
+      width: auto;
+      filter: none;
+      opacity: 1;
+    }
+
+    .logo-combo span {
+      font-family: 'Fira Sans', sans-serif;
+      font-weight: 500;
+      font-size: 1.4rem;
+      color: #000;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
     /* ─── Footer ─── */
     footer {
       background: var(--navy-dark);
@@ -510,17 +582,12 @@
         </div>
         <div class="about-text">
           <!-- BIO_START -->
-          <p>I help organisations think clearly about complex problems, understand their data,
-          train their people, and implement lasting solutions. My background spans government,
-          healthcare, and education.</p>
-          <p>Across industries, organisations sit on immense untapped data. Problems are
-          understood in fragments, and the information needed to form solutions is
-          scattered behind different doors.</p>
-          <p>I thrive on translating business problems into technical solutions — but
-          buy-in and capability are what make solutions stick. I'm an experienced educator
-          who has led classrooms, workshops, and data literacy programs for professional and
-          academic audiences, because lasting change requires more than a good model.</p>
-          <p>My practice is international. I have deep roots in Indonesia, Australia, and
+          <p>I help organisations and institutions think clearly about complex problems, emerging technologies and AI.
+          Together we build a stronger understanding of current issues and future possibilities.  We create blueprints
+          for how available data can support lasting solutions, and then we implement.</p>
+          <p>I'm a builder and a facilitator. My teams connect disparate systems, erect new architectures and elevate
+          capacity &amp; capability.</p>
+          <p>My practice is international, serving Australia, Indonesia and
           the United States, with an expanding network across Asia and beyond.</p>
           <!-- BIO_END -->
           <div class="about-tags">
@@ -529,7 +596,10 @@
             <span class="tag">United States</span>
             <span class="tag">Analytics Consulting</span>
             <span class="tag">Education &amp; Training</span>
-            <span class="tag">Systems Thinking</span>
+            <span class="tag">Performance Assessment</span>
+            <span class="tag">Data Infrastructure</span>
+            <span class="tag">Statistical Modelling</span>
+            <span class="tag">Workshop Facilitation</span>
           </div>
         </div>
       </div>
@@ -543,7 +613,7 @@
       <h2 class="section-title">Services</h2>
       <div class="services-grid">
         <div class="service-card">
-          <h3>Data Services</h3>
+          <h3>Data &amp; Automation Services</h3>
           <p>Data science, engineering and optimisation for healthcare, education, private sector or government. Exploratory analysis, auditing & diagnostics, full modeling projects and end-to-end pipelines, I work with your data to surface answers and automate processes.</p>
         </div>
         <div class="service-card">
@@ -596,6 +666,11 @@
           <h4>Sustained Oscillation &mdash; The Pendulum</h4>
           <p>Two-stock cross-coupled structure; RK4</p>
         </a>
+        <a href="tut-08-damped-oscillations.html" class="tutorial-card">
+          <div class="tutorial-num">08 &middot; System Dynamics</div>
+          <h4>Damped Oscillations &mdash; The Real Pendulum</h4>
+          <p>Friction as a structural factor; amplitude decay</p>
+        </a>
       </div>
       <div class="tutorials-footer">
         <p class="tutorials-more">More series coming &mdash; business analytics, forecasting, and beyond.</p>
@@ -638,6 +713,38 @@
       </div>
     </div>
   </section>
+
+  <!-- Clients strip -->
+  <div class="clients-strip">
+    <p class="clients-label">Trusted by teams at&hellip;</p>
+    <div class="clients-logos">
+      <img src="assets/logo-aptonow.avif"                      alt="AptoNow">
+      <img src="assets/logo-ANU.svg"                           alt="Australian National University">
+      <img src="assets/logo-attorney-general-dept.png"         alt="Attorney-General's Department">
+      <div class="logo-combo logo-combo-sm" role="img" aria-label="Curtin University">
+        <img class="logo-combo-img" src="assets/logo-curtin-icon-only.png" alt="">
+        <span>Curtin University</span>
+      </div>
+      <img src="assets/logo-deakin-university.png"             alt="Deakin University">
+      <img src="assets/logo-elevatehe.png"                     alt="ElevateHE">
+      <img src="assets/logo-epa-vic.png"                       alt="EPA Victoria">
+      <img src="assets/logo-higher-education-futures-lab.png"  alt="Higher Education Futures Lab">
+      <img src="assets/logo-infrastructure-australia.svg"      alt="Infrastructure Australia">
+      <img src="assets/logo-intel-foundation.webp"             alt="Intel Foundation">
+      <img src="assets/logo-monash-university.svg"             alt="Monash University">
+      <img src="assets/logo-nwmphn.svg"                        alt="North Western Melbourne PHN">
+      <img src="assets/logo-oes.png"                           alt="OES">
+      <img src="assets/logo-latrobe-university.png"             alt="La Trobe University">
+      <img src="assets/logo-qld-dept-youth-justice.png"        alt="Queensland Dept of Youth Justice">
+      <img src="assets/logo-rmit-university.png"               alt="RMIT University">
+      <img src="assets/logo-royal-womens-hospital.png"         alt="Royal Women's Hospital">
+      <img src="assets/logo-sampoerna-university.webp"         alt="Sampoerna University">
+      <img src="assets/logo-university-of-melbourne.png"       alt="University of Melbourne">
+      <img src="assets/logo-southwest-tafe.png"                 alt="South West TAFE">
+      <img src="assets/logo-tafe-gippsland.png"                alt="TAFE Gippsland">
+      <img src="assets/logo-university-of-tasmania.svg"        alt="University of Tasmania">
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer>
