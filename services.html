@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services — Ken Moore</title>
+  <meta name="description" content="Bespoke data solutions and analytics advisory services — Ken Moore.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&family=Fira+Sans:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:        #1e3a5f;
+      --navy-dark:   #14293f;
+      --amber:       #c9903a;
+      --amber-light: #dba84a;
+      --white:       #ffffff;
+      --off-white:   #f7f9fc;
+      --gray-light:  #edf2f7;
+      --gray-mid:    #a0aec0;
+      --text:        #2d3748;
+      --text-light:  #4a5568;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.6;
+    }
+
+    /* ─── Navigation ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(20, 41, 63, 0.96);
+      backdrop-filter: blur(8px);
+      height: 64px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: white;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--amber-light); }
+    .nav-links a.active { color: var(--amber-light); }
+
+    /* ─── Page Header ─── */
+    .page-header {
+      background: var(--navy);
+      padding: 130px 6% 72px;
+    }
+
+    .page-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .breadcrumb {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--amber-light);
+      text-decoration: none;
+      margin-bottom: 1.25rem;
+      transition: color 0.2s;
+    }
+
+    .breadcrumb:hover { color: white; }
+
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+      color: white;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .page-sub {
+      color: rgba(255,255,255,0.65);
+      font-size: 1.05rem;
+      max-width: 560px;
+      line-height: 1.75;
+    }
+
+    /* ─── Category jump links ─── */
+    .jump-nav {
+      background: var(--navy-dark);
+      padding: 1.25rem 6%;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .jump-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .jump-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      flex-shrink: 0;
+    }
+
+    .jump-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .jump-links a {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .jump-links a:hover { color: var(--amber-light); }
+
+    /* ─── Category sections ─── */
+    .category-section {
+      padding: 80px 6%;
+      scroll-margin-top: 64px;
+    }
+
+    .category-section.alt { background: var(--off-white); }
+
+    .category-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .category-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 0.5rem;
+    }
+
+    .category-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      color: var(--navy);
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+
+    .category-desc {
+      color: var(--text-light);
+      font-size: 1rem;
+      max-width: 620px;
+      line-height: 1.75;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--gray-light);
+      margin-bottom: 0;
+    }
+
+    /* ─── Individual service blocks ─── */
+    .service-detail {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 2.5rem;
+      align-items: stretch;
+      padding: 2.25rem 0;
+      border-bottom: 1px solid var(--gray-light);
+      scroll-margin-top: 84px;
+    }
+
+    .service-detail:last-child { border-bottom: none; }
+
+    .service-img-col {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .service-img-col img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 6px;
+      display: block;
+    }
+
+    .service-img-placeholder {
+      background: var(--gray-light);
+      border-radius: 6px;
+      min-height: 150px;
+      height: 100%;
+    }
+
+    .service-detail h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--navy);
+      margin-bottom: 0.75rem;
+    }
+
+    .service-desc {
+      color: var(--text-light);
+      font-size: 0.97rem;
+      line-height: 1.8;
+      margin-bottom: 0.9rem;
+    }
+
+    .service-examples {
+      color: var(--gray-mid);
+      font-size: 0.875rem;
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    /* ─── CTA strip ─── */
+    .cta-strip {
+      background: var(--navy-dark);
+      padding: 80px 6%;
+      text-align: center;
+    }
+
+    .cta-strip h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      color: white;
+      margin-bottom: 0.75rem;
+    }
+
+    .cta-strip p {
+      color: rgba(255,255,255,0.65);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto 2rem;
+      line-height: 1.75;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.75rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--amber-light);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(201,144,58,0.35);
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      background: var(--navy-dark);
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .jump-nav-inner { gap: 1rem; }
+      .jump-label { display: none; }
+      .service-detail { grid-template-columns: 1fr; }
+      .service-img-col img,
+      .service-img-placeholder { min-height: 220px; max-height: 280px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html" class="nav-brand">Ken Moore</a>
+    <ul class="nav-links">
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="services.html" class="active">Services</a></li>
+      <li><a href="index.html#tutorials">Tutorials</a></li>
+      <li><a href="index.html#works">Works</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <a href="index.html" class="breadcrumb">&larr; Back to Home</a>
+      <h1>Services</h1>
+      <p class="page-sub">End-to-end technical delivery and strategic advisory &mdash; from raw data to lasting organisational capability.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- Bespoke Solutions                           -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="category-section" id="bespoke-solutions">
+    <div class="category-inner">
+      <p class="category-label">Service Area 1</p>
+      <h2 class="category-title">Bespoke Solutions</h2>
+      <p class="category-desc">End-to-end technical delivery &mdash; from raw data to production-ready systems.</p>
+
+      <div class="service-detail" id="automation-optimisation">
+        <div class="service-img-col">
+          <img src="assets/services-automation-optimisation.png" alt="Automation &amp; Optimisation">
+        </div>
+        <div>
+          <h3>Automation &amp; Optimisation</h3>
+          <p class="service-desc">Automated systems that replace manual, time-consuming workflows. Mathematical optimisation across competing variables for more speed, nuance and reliabilty than manual processes.</p>
+          <p class="service-examples">Examples: Automated reporting pipeline for a Queensland state government department; automated survey analysis application for a federal government department; constrained optimisation timetabling system for a major Western Australian university.</p>
+        </div>
+      </div>
+
+      <div class="service-detail" id="scenario-models">
+        <div class="service-img-col">
+          <img src="assets/services-scenario-models-decision-analytics.png" alt="Scenario Models &amp; Decision Analytics">
+        </div>
+        <div>
+          <h3>Scenario Models &amp; Decision Analytics</h3>
+          <p class="service-desc">Quantitative models that translate strategic questions into structured, computable scenarios.</p>
+          <p class="service-examples">Examples: 15-year service capacity and infrastructure demand model and scenarios for a leading Melbourne hospital; workforce supply scenario modelling for a federal infrastructure planning agency; sector-level higher education funding and financial position analysis for a major public university.</p>
+        </div>
+      </div>
+
+      <div class="service-detail" id="sector-geospatial">
+        <div class="service-img-col">
+          <img src="assets/services-sector-geo-spatial.png" alt="Sector &amp; Geospatial Analysis">
+        </div>
+        <div>
+          <h3>Sector &amp; Geospatial Analysis</h3>
+          <p class="service-desc">ABS, Census, and sector-specific data applied at fine geographic resolution to model service demand, workforce supply, and market opportunity.</p>
+          <p class="service-examples">Examples: SA2-level workforce skills supply model for a federal infrastructure agency; VET market demand modelling for campus and course portfolio planning at two regional TAFEs; demographic market intelligence tool for a large metropolitan university; interactive geospatial dashboard mapping service provision gaps across a remote territory.</p>
+        </div>
+      </div>
+
+      <div class="service-detail" id="ml-predictive">
+        <div class="service-img-col">
+          <img src="assets/services-ml-statistics-predictive-models.png" alt="ML, Statistics &amp; Predictive Models">
+        </div>
+        <div>
+          <h3>ML, Statistics &amp; Predictive Models</h3>
+          <p class="service-desc">Statistical and machine learning models that forecast outcomes, identify risk, or confirm relationships.</p>
+          <p class="service-examples">Examples: Statistical survey analytics and confidence intervals for nation wide questionnaire to understand post-COVID regulatory change and impact; Student attrition prediction models for at-risk students at a large West Australian university; productivity and efficiency measurement across international higher education systems using DEA and T&ouml;rnqvist index methods.</p>
+        </div>
+      </div>
+
+      <div class="service-detail" id="bi-dashboards">
+        <div class="service-img-col">
+          <img src="assets/services-bi-reporting-dashboards.png" alt="BI, Reporting &amp; Dashboards">
+        </div>
+        <div>
+          <h3>BI, Reporting &amp; Dashboards</h3>
+          <p class="service-desc">Business and policy intelligence tools that make analytical findings accessible to decision-makers.</p>
+          <p class="service-examples">Examples: Interactive youth justice reporting dashboard for a Queensland state government department; market research web tool and dashboard for a large metropolitan university; automated survey analysis and reporting application for a federal government department.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- Analytics & Education Advisory              -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="category-section alt" id="analytics-advisory">
+    <div class="category-inner">
+      <p class="category-label">Service Area 2</p>
+      <h2 class="category-title">Analytics &amp; Education Advisory</h2>
+      <p class="category-desc">Strategic guidance and capability building for teams navigating data-driven change.</p>
+
+      <div class="service-detail" id="ai-readiness">
+        <div class="service-img-col">
+          <img src="assets/services-ai-readiness.png" alt="AI Readiness &amp; Adoption">
+        </div>
+        <div>
+          <h3>AI Readiness &amp; Adoption</h3>
+          <p class="service-desc">Assessing and closing the gap between where an organisation&rsquo;s data and processes are today and what genuine AI adoption requires.</p>
+          <p class="service-examples">Examples: Company-wide AI-assisted workflow adoption &mdash; including agent-based tooling, company-specific rules and skills, and staff prompt engineering training; analytics capability uplift and workflow integration for a Queensland state government department.</p>
+        </div>
+      </div>
+
+      <div class="service-detail" id="data-architecture">
+        <div class="service-img-col">
+          <img src="assets/services-data-system-architecture.png" alt="Data &amp; System Architecture">
+        </div>
+        <div>
+          <h3>Data &amp; System Architecture</h3>
+          <p class="service-desc">The data infrastructure that underpins reliable analytics, reporting and regulatory compliance.</p>
+          <p class="service-examples">Examples: Proprietary data warehouse design using star schema with staging and production environments; system / nation-level design of education information management systems.</p>
+        </div>
+      </div>
+
+      <div class="service-detail" id="performance-measurement">
+        <div class="service-img-col">
+          <img src="assets/services-performance-measurement.png" alt="Performance Measurement">
+        </div>
+        <div>
+          <h3>Performance Measurement</h3>
+          <p class="service-desc">Quantitative frameworks for measuring organisational performance against objectives.</p>
+          <p class="service-examples">Examples: Productivity and efficiency measurement frameworks for Australian and international higher education institutions (peer-reviewed publications and a Springer monograph); corporate services benchmarking for Australian universities; Balanced Scorecard development for an Indonesian corporate client.</p>
+        </div>
+      </div>
+
+      <div class="service-detail" id="education-training">
+        <div class="service-img-col">
+          <img src="assets/services-education-training.png" alt="Education &amp; Training">
+        </div>
+        <div>
+          <h3>Education &amp; Training</h3>
+          <p class="service-desc">Bespoke training programs for professional and technical audiences, designed and delivered in-context.</p>
+          <p class="service-examples">Examples: Analytics bootcamp for junior staff; R and data analysis training embedded within client project delivery; prompt engineering and AI context training for professional staff.</p>
+        </div>
+      </div>
+
+      <div class="service-detail" id="workshop-facilitation">
+        <div class="service-img-col">
+          <img src="assets/services-workshop-facilitation.png" alt="Workshop Facilitation">
+        </div>
+        <div>
+          <h3>Workshop Facilitation</h3>
+          <p class="service-desc">Structured sessions that build shared understanding and drive decisions for executives and administrators.</p>
+          <p class="service-examples">Examples: Systems thinking and Balanced Scorecard development workshops for executives; staff consultations and capacity-building workshops for non-profits; strategic planning, objective and KPI development for complex organisations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-strip">
+    <h2>Let&rsquo;s work together.</h2>
+    <p>Whether you have a data project, a training need, or just want to explore what&rsquo;s possible &mdash; I&rsquo;d love to hear from you.</p>
+    <a href="index.html#contact" class="btn btn-primary">Get in Touch</a>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 Ken Moore. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
