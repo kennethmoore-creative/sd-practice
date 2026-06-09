@@ -41,9 +41,8 @@ vignettes/*.pdf
 .Renviron
 
 # Knitted output and binary assets
-*.html
-!website-tutorials/index.html
-!website-tutorials/services.html
+sd_model_examples/*.html
+sd-model-practice-scripts/*.html
 
 # Loose source assets (working copies committed under website-tutorials/assets/)
 Ken-Apto_edited.avif
