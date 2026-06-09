@@ -10,11 +10,9 @@ project:
     - "!services-detail.md"
 
 website:
-  title: "Ken Moore"
+  title: "Ken Moore Solutions"
   navbar:
     left:
-      - href: /
-        text: Home
       - text: Tutorials
         menu:
           - href: tutorials.qmd

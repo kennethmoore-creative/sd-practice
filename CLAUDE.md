@@ -146,6 +146,25 @@ The `website-tutorials/` folder is a Quarto website published to GitHub Pages. E
    ```
    Then run `Rscript splice_bio.R` and `quarto render` to push the change into `_site/`.
 
+**Adding a logo to the clients strip (`index.html`):**
+
+All logos in the clients strip have the CSS filter `brightness(0) invert(1)` applied, which renders them as white silhouettes on the dark navy background. This means every logo file **must have a transparent background** — a white background becomes a white box.
+
+When a new PNG logo is added with a white background, remove it with R magick before adding the `<img>` tag:
+
+```r
+library(magick)
+img <- image_read("website-tutorials/assets/logo-name.png")
+img <- image_trim(img)   # remove excess whitespace/padding first
+img <- image_convert(img, type = "TrueColorAlpha")
+img <- image_transparent(img, "white", fuzz = 20)
+image_write(img, "website-tutorials/assets/logo-name.png", format = "png")
+```
+
+After fixing the file, **always re-render** (`quarto render website-tutorials`) so the updated asset is copied into `_site/assets/`. Editing the source file alone does not update the live preview.
+
+SVG logos are naturally transparent and do not need this treatment.
+
 ## R function library (`R/`)
 
 The `R/` folder is the **single source of truth** for all reusable functions used across `.qmd` tutorials and exploratory `.R` scripts. Never redefine a function inline if it already exists here.
