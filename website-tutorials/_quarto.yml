@@ -35,10 +35,6 @@ website:
             text: "7: Oscillation"
           - href: tut-08-damped-oscillations.qmd
             text: "8: Damped Oscillations"
-          - href: tut-09-reading-the-shape-pt1.qmd
-            text: "9: Reading the Shape (Pt 1)"
-          - href: tut-09-reading-the-shape-pt2.qmd
-            text: "9: Reading the Shape (Pt 2)"
 
 format:
   html:
