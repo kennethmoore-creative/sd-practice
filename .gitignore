@@ -59,6 +59,15 @@ website-tutorials/_site/assets/
 *.js
 *.woff
 
+# Allow website assets to be tracked despite the above
+!website-tutorials/assets/*.png
+!website-tutorials/assets/*.jpg
+!website-tutorials/assets/*.jpeg
+!website-tutorials/assets/*.gif
+!website-tutorials/assets/*.svg
+!website-tutorials/assets/*.avif
+!website-tutorials/assets/*.webp
+
 # pkgdown site
 docs/
 
