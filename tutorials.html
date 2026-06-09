@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>System Dynamics Tutorials – Ken Moore</title>
+<title>System Dynamics Tutorials – Ken Moore Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -39,10 +39,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-f79c7fb6db380d32be398468f2fb58cf.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-4bd490e9cd57f2396cbd188312c0541c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-944055a0cda0cb259de16c8abb55adac.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-09e703c3ff5b92d676434b70e315883b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -82,7 +82,7 @@ ul.task-list li input[type="checkbox"] {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Ken Moore</span>
+    <span class="navbar-title">Ken Moore Solutions</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -91,10 +91,6 @@ ul.task-list li input[type="checkbox"] {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
-    <a class="nav-link" href="./"> 
-<span class="menu-text">Home</span></a>
-  </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Tutorials</span>
@@ -131,6 +127,10 @@ ul.task-list li input[type="checkbox"] {
         <li>
     <a class="dropdown-item" href="./tut-07-oscillation-pendulum.html">
  <span class="dropdown-text">7: Oscillation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./tut-08-damped-oscillations.html">
+ <span class="dropdown-text">8: Damped Oscillations</span></a>
   </li>  
     </ul>
   </li>
@@ -178,56 +178,51 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>These tutorials replicate examples from the <strong>MIT System Dynamics in Education Project</strong> Road Maps series (supervised by Jay W. Forrester), implemented in R using <code>deSolve</code> and <code>tidyverse</code>.</p>
 <section id="acknowledgement" class="level2">
 <h2 class="anchored" data-anchor-id="acknowledgement">Acknowledgement</h2>
-<p>These tutorials derive from the <a href="https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/">Road Maps</a> curriculum, developed by the System Dynamics in Education Project (SDEP) at MIT under the direction of Professor Jay Forrester. With the rapid growth of data science, the purpose of this series is to place the power of SD in the hands of a new generation of analysts and data scientists through supplementary tutorials and reproducible code in R. Personal thanks to Lees Stutz of the <a href="http://www.clexchange.org/">Creative Learning Exchange</a> (CLE) for introducing me to the Road Maps curriculum and supporting my own SD journey.</p>
+<p>These tutorials derive from the <a href="https://ocw.mit.edu/courses/sloan-school-of-management/15-988-system-dynamics-self-study-fall-1998-spring-1999/readings/" target="_blank" rel="noopener">Road Maps</a> curriculum, developed by the System Dynamics in Education Project (SDEP) at MIT under the direction of Professor Jay Forrester. With the rapid growth of data science, the purpose of this series is to place the power of SD in the hands of a new generation of analysts and data scientists through supplementary tutorials and reproducible code in R. Personal thanks to Lees Stutz of the <a href="http://www.clexchange.org/" target="_blank" rel="noopener">Creative Learning Exchange</a> (CLE) for introducing me to the Road Maps curriculum and supporting my own SD journey.</p>
 </section>
 <section id="tutorials" class="level2">
 <h2 class="anchored" data-anchor-id="tutorials">Tutorials</h2>
 <table class="caption-top table">
 <thead>
 <tr class="header">
-<th>#</th>
-<th>Title</th>
+<th>Tutorial</th>
 <th>Key concept</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="./tut-01-first-order-positive-feedback.html">1</a></td>
-<td>First-Order Positive Feedback</td>
+<td><a href="./tut-01-first-order-positive-feedback.html">First-Order Positive Feedback</a></td>
 <td>Exponential growth</td>
 </tr>
 <tr class="even">
-<td><a href="./tut-02-first-order-positive-feedback-behavior.html">2</a></td>
-<td>Behavior of Positive Feedback Systems</td>
+<td><a href="./tut-02-first-order-positive-feedback-behavior.html">Behavior of Positive Feedback Systems</a></td>
 <td>Sensitivity analysis</td>
 </tr>
 <tr class="odd">
-<td><a href="./tut-03-first-order-negative-feedback.html">3</a></td>
-<td>First-Order Negative Feedback</td>
+<td><a href="./tut-03-first-order-negative-feedback.html">First-Order Negative Feedback</a></td>
 <td>Goal-seeking / exponential decay</td>
 </tr>
 <tr class="even">
-<td><a href="./tut-04-closing-the-gap.html">4</a></td>
-<td>Closing the Gap</td>
+<td><a href="./tut-04-closing-the-gap.html">Closing the Gap</a></td>
 <td>Asymptotic growth and decay</td>
 </tr>
 <tr class="odd">
-<td><a href="./tut-05-s-shaped-growth.html">5</a></td>
-<td>S-Shaped Growth</td>
+<td><a href="./tut-05-s-shaped-growth.html">S-Shaped Growth</a></td>
 <td>Combined positive and negative feedback</td>
 </tr>
 <tr class="even">
-<td><a href="./tut-06-epidemic-sis.html">6</a></td>
-<td>S-Shaped Growth — SIS Epidemic</td>
+<td><a href="./tut-06-epidemic-sis.html">S-Shaped Growth — SIS Epidemic</a></td>
 <td>Two-stock epidemic structure; product-driven nonlinearity</td>
 </tr>
 <tr class="odd">
-<td><a href="./tut-07-oscillation-pendulum.html">7</a></td>
-<td>Sustained Oscillation — The Pendulum</td>
-<td>Two-stock cross-coupled structure; RK4 integration</td>
+<td><a href="./tut-07-oscillation-pendulum.html">Sustained Oscillation — The Pendulum</a></td>
+<td>Two-stock cross-coupled structure</td>
+</tr>
+<tr class="even">
+<td><a href="./tut-08-damped-oscillations.html">Damped Oscillations — The Real Pendulum</a></td>
+<td>Friction as a structural factor</td>
 </tr>
 </tbody>
 </table>

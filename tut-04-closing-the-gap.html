@@ -2,14 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="By Kenneth Moore">
 <meta name="dcterms.date" content="2026-04-18">
 
-<title>SD Tutorial 4: Closing the Gap – Ken Moore</title>
+<title>SD Tutorial 4: Closing the Gap – Ken Moore Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -76,10 +76,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-f79c7fb6db380d32be398468f2fb58cf.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-4bd490e9cd57f2396cbd188312c0541c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-27a9163873b1a6cd8364aa5c89144e35.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ead0b6dc4e2015cb26e45e86d7dac826.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -148,7 +148,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Ken Moore</span>
+    <span class="navbar-title">Ken Moore Solutions</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -157,10 +157,6 @@ window.Quarto = {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
-    <a class="nav-link" href="./"> 
-<span class="menu-text">Home</span></a>
-  </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Tutorials</span>
@@ -197,6 +193,10 @@ window.Quarto = {
         <li>
     <a class="dropdown-item" href="./tut-07-oscillation-pendulum.html">
  <span class="dropdown-text">7: Oscillation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./tut-08-damped-oscillations.html">
+ <span class="dropdown-text">8: Damped Oscillations</span></a>
   </li>  
     </ul>
   </li>
@@ -306,18 +306,19 @@ window.Quarto = {
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">p_adjustment_time =</span> <span class="dv">2</span>)    <span class="co"># time  — time constant</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we define the model. Notice that the gap is expressed as <code>p_goal - s_stock</code>. This is the critical difference from the previous tutorial: the flow inherits its sign directly from the gap, so no manual sign correction is needed on <code>ds_dt</code>.</p>
+<p>The model follows the standard <code>deSolve</code> function signature. Variable names use the project’s prefix convention (<code>s_</code> stocks, <code>p_</code> parameters, <code>c_</code> converters, <code>f_</code> flows).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="cf">function</span>(time, stocks, params) {</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(stocks, params)), {</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    c_gap  <span class="ot">&lt;-</span> p_goal <span class="sc">-</span> s_stock             <span class="co"># units      — positive: below goal; negative: above goal</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    f_flow <span class="ot">&lt;-</span> c_gap <span class="sc">/</span> p_adjustment_time    <span class="co"># units/time — sign drives growth or decay</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    f_adjusting <span class="ot">&lt;-</span> c_gap <span class="sc">/</span> p_adjustment_time    <span class="co"># units/time — sign drives growth or decay</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    ds_dt <span class="ot">&lt;-</span> f_flow</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    ds_dt <span class="ot">&lt;-</span> f_adjusting</span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="fu">c</span>(ds_dt),</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">gap  =</span> c_gap,</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">flow =</span> f_flow))</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">flow =</span> f_adjusting))</span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  })</span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -420,12 +421,12 @@ window.Quarto = {
 </section>
 <section id="bonus" class="level1">
 <h1>Bonus</h1>
-<p>In my own personal career as a consultant, this generic negative-feedback structure has been been one of the most powerful problem-solving heuristics I’ve ever come across. Nearly any “problem” you can conceive of can be reframed in terms of:</p>
+<p>In my own career as a consultant, this generic negative-feedback structure has been been one of the most powerful problem-solving heuristics I’ve come across. Nearly any “problem” you can conceive of can be reframed in terms of:</p>
 <p>“Problem” == “Difference between desired state and current state”</p>
 <p>I would challenge you to think of a problem that <strong>cannot</strong> be reframed in this way.</p>
 <p>A. “My son isn’t doing his system dynamics homework.” B. “My team isn’t winning enough proposals”</p>
 <p>A’. My son needs to complete four assignments per week; he’s currently completing none. B’. On average, we need to win $200k of work per quarter; we’re currently winning only half of that.</p>
-<p>This “gap-closing” reframing of problems anchors them in something tangible that can be improved incrementally. Importantly, it makes the problem less personal! Of course, the reframing doesn’t necessarily point to an immediate solution, but we now know what success looks like, and we can probe and test how to get there.</p>
+<p>This “gap-closing” reframing of problems anchors them in something tangible that can be improved incrementally. Importantly, it makes the problem less personal! Of course, the reframing doesn’t always point to a silver bullet, but we now know what success looks like, and we can probe and test how to get there.</p>
 <p>Do I need to sit down with my son, next to him while he does his homework at least once per week, twice? Does he just need a reminder? Will I be happy if next week he’s just getting in two assignments? Does measurable, gradual progress not deserve acknowledgement before expecting too much too soon?</p>
 <p>Does my team need to apply for more proposals per quarter? Do we need to focus on winning bigger projects? Is there something lacking about the quality of our proposals? Is there something wrong with the composition of our team?</p>
 

@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Kenneth Moore">
 
-<title>SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model – Ken Moore</title>
+<title>SD Tutorial 6: S-Shaped Growth — SIS Epidemic Model – Ken Moore Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -75,10 +75,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-f79c7fb6db380d32be398468f2fb58cf.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-4bd490e9cd57f2396cbd188312c0541c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-27a9163873b1a6cd8364aa5c89144e35.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ead0b6dc4e2015cb26e45e86d7dac826.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -147,7 +147,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Ken Moore</span>
+    <span class="navbar-title">Ken Moore Solutions</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -156,10 +156,6 @@ window.Quarto = {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
-    <a class="nav-link" href="./"> 
-<span class="menu-text">Home</span></a>
-  </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Tutorials</span>
@@ -197,6 +193,10 @@ window.Quarto = {
     <a class="dropdown-item" href="./tut-07-oscillation-pendulum.html">
  <span class="dropdown-text">7: Oscillation</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./tut-08-damped-oscillations.html">
+ <span class="dropdown-text">8: Damped Oscillations</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -229,7 +229,6 @@ window.Quarto = {
   <li><a href="#exercise-2-four-initial-conditions" id="toc-exercise-2-four-initial-conditions" class="nav-link" data-scroll-target="#exercise-2-four-initial-conditions">Exercise 2: four initial conditions</a></li>
   <li><a href="#run-e-terminal-illness" id="toc-run-e-terminal-illness" class="nav-link" data-scroll-target="#run-e-terminal-illness">Run e: terminal illness</a></li>
   </ul></li>
-  <li><a href="#equilibrium" id="toc-equilibrium" class="nav-link" data-scroll-target="#equilibrium">Equilibrium</a></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   </ul>
 </nav>
@@ -348,13 +347,14 @@ window.Quarto = {
 <h1>R Modelling Tutorial</h1>
 <section id="model-function" class="level2">
 <h2 class="anchored" data-anchor-id="model-function">Model function</h2>
+<p>The model follows the standard <code>deSolve</code> function signature. Variable names use the project’s prefix convention (<code>s_</code> stocks, <code>p_</code> parameters, <code>c_</code> converters, <code>f_</code> flows).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="cf">function</span>(time, stocks, params) {</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(stocks, params)), {</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    a_prob_contact_sick <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> (s_healthy <span class="sc">+</span> s_sick)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    c_prob_contact_sick <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> (s_healthy <span class="sc">+</span> s_sick)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    f_catching_illness <span class="ot">&lt;-</span> s_healthy <span class="sc">*</span> a_prob_contact_sick <span class="sc">*</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    f_catching_illness <span class="ot">&lt;-</span> s_healthy <span class="sc">*</span> c_prob_contact_sick <span class="sc">*</span></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                          p_population_interactions <span class="sc">*</span> p_prob_catching   <span class="co"># people/month</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    f_recovering    <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> p_duration_of_illness                <span class="co"># people/month</span></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
@@ -488,10 +488,10 @@ $ run   &lt;chr&gt; "a: 5 sick, 95 healthy", "a: 5 sick, 95 healthy", "a: 5 sick
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>model_no_recovery <span class="ot">&lt;-</span> <span class="cf">function</span>(time, stocks, params) {</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(stocks, params)), {</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    a_total_population  <span class="ot">&lt;-</span> s_healthy <span class="sc">+</span> s_sick</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    a_prob_contact_sick <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> a_total_population</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    c_total_population  <span class="ot">&lt;-</span> s_healthy <span class="sc">+</span> s_sick</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    c_prob_contact_sick <span class="ot">&lt;-</span> s_sick <span class="sc">/</span> c_total_population</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    f_catching_illness <span class="ot">&lt;-</span> s_healthy <span class="sc">*</span> a_prob_contact_sick <span class="sc">*</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    f_catching_illness <span class="ot">&lt;-</span> s_healthy <span class="sc">*</span> c_prob_contact_sick <span class="sc">*</span></span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                          p_population_interactions <span class="sc">*</span> p_prob_catching</span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    f_recovering    <span class="ot">&lt;-</span> <span class="dv">0</span></span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
@@ -538,42 +538,12 @@ $ run   &lt;chr&gt; "a: 5 sick, 95 healthy", "a: 5 sick, 95 healthy", "a: 5 sick
 <p>Without recovery, sick people grow in a classic S-shape — slow at first (few sick), then rapid (positive loop dominates), then levelling off as the healthy pool is exhausted (negative loop B2 dominates). The system reaches a new equilibrium of <code>Sick = 100, Healthy = 0</code>.</p>
 </section>
 </section>
-<section id="equilibrium" class="level1">
-<h1>Equilibrium</h1>
-<p>At equilibrium, inflow equals outflow for both stocks:</p>
-<p><span class="math display">\[\text{Catching Illness} = \text{Recovering}\]</span></p>
-<p>Substituting the model equations:</p>
-<p><span class="math display">\[H^* \times \frac{S^*}{N} \times PI \times PC = \frac{S^*}{D}\]</span></p>
-<p>Where <span class="math inline">\(N = H^* + S^* = 100\)</span> is the fixed total population. Dividing both sides by <span class="math inline">\(S^*\)</span> (assuming <span class="math inline">\(S^* \neq 0\)</span>) and rearranging:</p>
-<p><span class="math display">\[H^* = \frac{N}{PI \times PC \times D} = \frac{100}{10 \times 0.5 \times 0.5} = \frac{100}{2.5} = 40\]</span></p>
-<p>Therefore:</p>
-<p><span class="math display">\[S^* = N - H^* = 100 - 40 = 60\]</span></p>
-<p>The system always settles at <strong>40 healthy, 60 sick</strong> — regardless of initial conditions — as long as <span class="math inline">\(S_0 &gt; 0\)</span>. This equilibrium is confirmed by all the runs above (a, c, and d all converge to the same values).</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sim_results <span class="sc">%&gt;%</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"s_healthy"</span>, <span class="st">"s_sick"</span>),</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         time <span class="sc">==</span> <span class="fu">max</span>(time)) <span class="sc">%&gt;%</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(run, name, value) <span class="sc">%&gt;%</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">value =</span> <span class="fu">round</span>(value, <span class="dv">2</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> name, <span class="at">values_from =</span> value)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4 × 3
-  run                     s_healthy s_sick
-  &lt;chr&gt;                       &lt;dbl&gt;  &lt;dbl&gt;
-1 a: 5 sick, 95 healthy          40     60
-2 b: 0 sick — no epidemic       100      0
-3 c: 55 sick, 45 healthy         40     60
-4 d: 50 sick, 50 healthy         40     60</code></pre>
-</div>
-</div>
-</section>
 <section id="conclusion" class="level1">
 <h1>Conclusion</h1>
 <p>This tutorial demonstrated S-shaped growth emerging from a two-stock SIS epidemic structure. Several insights stand out:</p>
 <ol type="1">
 <li><p><strong>S-shaped growth is a behaviour, not a structure.</strong> The same S-curve seen in the single-stock density model (Tutorial 5) arises here from a fundamentally different mechanism — the interaction between two populations.</p></li>
 <li><p><strong>The product of two stocks creates nonlinearity.</strong> The catching illness rate is proportional to <code>Healthy × (Sick/Total)</code>, which is what generates the characteristic S-shape without any lookup table.</p></li>
-<li><p><strong>Equilibrium can be derived algebraically.</strong> Setting catching illness equal to Recovering and solving gives <span class="math inline">\(H^* = N / (PI \times PC \times D)\)</span> — a clean formula for the stable endemic level.</p></li>
 <li><p><strong>Initial conditions determine trajectory, not destination.</strong> All positive-<span class="math inline">\(S_0\)</span> runs converge to the same equilibrium; only the path differs.</p></li>
 <li><p><strong>Removing recovery eliminates the stable interior equilibrium.</strong> Without recovery (run e), the only equilibrium is full infection — confirming that B1 is essential for containing the epidemic.</p></li>
 </ol>

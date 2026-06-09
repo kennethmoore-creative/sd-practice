@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Kenneth Moore">
 
-<title>Tutorial 7: Sustained Oscillation — The Pendulum – Ken Moore</title>
+<title>Tutorial 7: Sustained Oscillation — The Pendulum – Ken Moore Solutions</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -75,10 +75,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-f79c7fb6db380d32be398468f2fb58cf.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-4bd490e9cd57f2396cbd188312c0541c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-944055a0cda0cb259de16c8abb55adac.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-09e703c3ff5b92d676434b70e315883b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -147,7 +147,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Ken Moore</span>
+    <span class="navbar-title">Ken Moore Solutions</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -156,10 +156,6 @@ window.Quarto = {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
-    <a class="nav-link" href="./"> 
-<span class="menu-text">Home</span></a>
-  </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Tutorials</span>
@@ -197,6 +193,10 @@ window.Quarto = {
     <a class="dropdown-item" href="./tut-07-oscillation-pendulum.html">
  <span class="dropdown-text">7: Oscillation</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./tut-08-damped-oscillations.html">
+ <span class="dropdown-text">8: Damped Oscillations</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -226,7 +226,6 @@ window.Quarto = {
   <li><a href="#model-function" id="toc-model-function" class="nav-link" data-scroll-target="#model-function">Model Function</a></li>
   <li><a href="#solving-and-visualising" id="toc-solving-and-visualising" class="nav-link" data-scroll-target="#solving-and-visualising">Solving and Visualising</a></li>
   </ul></li>
-  <li><a href="#period-of-oscillation" id="toc-period-of-oscillation" class="nav-link" data-scroll-target="#period-of-oscillation">Period of Oscillation</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
   </ul>
 </nav>
@@ -263,7 +262,7 @@ window.Quarto = {
 <hr>
 <section id="introduction-what-is-sustained-oscillation" class="level2">
 <h2 class="anchored" data-anchor-id="introduction-what-is-sustained-oscillation">Introduction: What Is Sustained Oscillation?</h2>
-<p>Many real systems cycle up and down indefinitely — a pendulum swings back and forth, employment levels in an industry rise and fall on multi-year cycles, blood sugar oscillates around a set point. This behaviour is called <strong>sustained oscillation</strong>.</p>
+<p>Many real systems cycle up and down — a pendulum swings back and forth, employment levels in an industry rise and fall on multi-year cycles, blood sugar oscillates around a set point. This behaviour is called <strong>sustained oscillation</strong>.</p>
 <p>Sustained oscillation is a fundamentally different mode of behaviour from the three we have seen so far:</p>
 <table class="caption-top table">
 <colgroup>
@@ -295,7 +294,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>The last row reveals a key result: <strong>a single-stock system cannot oscillate sustainably</strong>. A single stock always converges to equilibrium or diverges. Two stocks, linked in the right way, can sustain oscillation indefinitely.</p>
+<p>The last row reveals a key result: <strong>a single-stock system cannot oscillate sustainably</strong>. A single stock always converges to equilibrium or diverges. Two stocks, linked in the right way, can sustain oscillation.</p>
 <hr>
 </section>
 <section id="the-generic-structure-for-sustained-oscillation" class="level2">
@@ -366,7 +365,7 @@ Figure&nbsp;2: Stock-and-flow structure of the pendulum. Velocity drives the Cha
 </section>
 <section id="model-equations" class="level2">
 <h2 class="anchored" data-anchor-id="model-equations">Model Equations</h2>
-<p>From Appendix 2 of D-4426-3, the equations are:</p>
+<p>The equations are:</p>
 <p><span class="math display">\[\frac{d(\text{Position})}{dt} = \text{Velocity}\]</span></p>
 <p><span class="math display">\[\frac{d(\text{Velocity})}{dt} = \frac{g}{L} \times \text{Gap}\]</span></p>
 <p><span class="math display">\[\text{Gap} = \text{Desired Position} - \text{Position}\]</span></p>
@@ -390,14 +389,14 @@ Figure&nbsp;2: Stock-and-flow structure of the pendulum. Velocity drives the Cha
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="cf">function</span>(time, stocks, params) {</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(stocks, params)), {</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    a_gap               <span class="ot">&lt;-</span> p_desired_position <span class="sc">-</span> s_position</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    c_gap               <span class="ot">&lt;-</span> p_desired_position <span class="sc">-</span> s_position</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    f_changing_position <span class="ot">&lt;-</span> s_velocity</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    f_changing_velocity <span class="ot">&lt;-</span> (p_gravity <span class="sc">/</span> p_length_of_pendulum) <span class="sc">*</span> a_gap</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    f_changing_velocity <span class="ot">&lt;-</span> (p_gravity <span class="sc">/</span> p_length_of_pendulum) <span class="sc">*</span> c_gap</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    ds_position_dt      <span class="ot">&lt;-</span> f_changing_position</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    ds_velocity_dt      <span class="ot">&lt;-</span> f_changing_velocity</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(ds_position_dt, ds_velocity_dt),</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">gap          =</span> a_gap,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">gap          =</span> c_gap,</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">acceleration =</span> f_changing_velocity</span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    ))</span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  })</span>
@@ -453,18 +452,18 @@ Figure&nbsp;3: Euler integration produces artificially expanding oscillations �
 </section>
 <section id="model-function" class="level3">
 <h3 class="anchored" data-anchor-id="model-function">Model Function</h3>
-<p>The model follows the standard <code>deSolve</code> function signature. Variable names use the project’s prefix convention (<code>s_</code> stocks, <code>p_</code> parameters, <code>a_</code> auxiliaries, <code>f_</code> flows).</p>
+<p>The model follows the standard <code>deSolve</code> function signature. Variable names use the project’s prefix convention (<code>s_</code> stocks, <code>p_</code> parameters, <code>c_</code> converters, <code>f_</code> flows).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="cf">function</span>(time, stocks, params) {</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">as.list</span>(<span class="fu">c</span>(stocks, params)), {</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    a_gap               <span class="ot">&lt;-</span> p_desired_position <span class="sc">-</span> s_position</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    c_gap               <span class="ot">&lt;-</span> p_desired_position <span class="sc">-</span> s_position</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    f_changing_position <span class="ot">&lt;-</span> s_velocity</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    f_changing_velocity <span class="ot">&lt;-</span> (p_gravity <span class="sc">/</span> p_length_of_pendulum) <span class="sc">*</span> a_gap</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    f_changing_velocity <span class="ot">&lt;-</span> (p_gravity <span class="sc">/</span> p_length_of_pendulum) <span class="sc">*</span> c_gap</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    ds_position_dt      <span class="ot">&lt;-</span> f_changing_position</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ds_velocity_dt      <span class="ot">&lt;-</span> f_changing_velocity</span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(</span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(ds_position_dt, ds_velocity_dt),</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">gap          =</span> a_gap,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">gap          =</span> c_gap,</span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">acceleration =</span> f_changing_velocity</span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    ))</span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  })</span>
@@ -544,38 +543,6 @@ Figure&nbsp;5: Phase portrait of the pendulum. For a frictionless (undamped) pen
 <hr>
 </section>
 </section>
-<section id="period-of-oscillation" class="level2">
-<h2 class="anchored" data-anchor-id="period-of-oscillation">Period of Oscillation</h2>
-<p>For a small-angle pendulum, the period (time for one complete cycle) is given by:</p>
-<p><span class="math display">\[T = 2\pi \sqrt{\frac{L}{g}}\]</span></p>
-<p>With <span class="math inline">\(L = 1\)</span> metre and <span class="math inline">\(g = 9.8 \text{ m/s}^2\)</span>:</p>
-<p><span class="math display">\[T = 2\pi \sqrt{\frac{1}{9.8}} \approx 2.007 \text{ seconds}\]</span></p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>T_theoretical <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> <span class="fu">sqrt</span>(params[<span class="st">"p_length_of_pendulum"</span>] <span class="sc">/</span> params[<span class="st">"p_gravity"</span>])</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Theoretical period:"</span>, <span class="fu">round</span>(T_theoretical, <span class="dv">3</span>), <span class="st">"seconds</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Theoretical period: 2.007 seconds</code></pre>
-</div>
-</div>
-<p>We can verify this empirically from the simulation. The position first reaches zero at <span class="math inline">\(T/4 \approx 0.50\)</span> seconds (the first zero-crossing after release), so the full period should be four times that.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># First zero-crossing of position (after time 0)</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>first_cross <span class="ot">&lt;-</span> sim_data <span class="sc">|&gt;</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(time <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="fu">abs</span>(s_position) <span class="sc">==</span> <span class="fu">min</span>(<span class="fu">abs</span>(s_position[time <span class="sc">&gt;</span> <span class="dv">0</span>]))) <span class="sc">|&gt;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span>)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"First zero-crossing at t ="</span>, <span class="fu">round</span>(first_cross<span class="sc">$</span>time, <span class="dv">3</span>), <span class="st">"seconds</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>First zero-crossing at t = 8.53 seconds</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Implied period:"</span>, <span class="fu">round</span>(first_cross<span class="sc">$</span>time <span class="sc">*</span> <span class="dv">4</span>, <span class="dv">3</span>), <span class="st">"seconds</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Implied period: 34.12 seconds</code></pre>
-</div>
-</div>
-<p>The empirical period matches the theoretical value closely, confirming that the model is correctly solving the equations of motion.</p>
-<hr>
-</section>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
 <ul>
@@ -587,7 +554,6 @@ Figure&nbsp;5: Phase portrait of the pendulum. For a frictionless (undamped) pen
 <li><span class="math inline">\(d(\text{Position})/dt = \text{Velocity}\)</span></li>
 <li><span class="math inline">\(d(\text{Velocity})/dt = (g/L) \times \text{Gap}\)</span></li>
 </ul></li>
-<li>The period follows from physics: <span class="math inline">\(T = 2\pi\sqrt{L/g} \approx 2.007\)</span> seconds for a 1-metre pendulum.</li>
 </ul>
 
 
