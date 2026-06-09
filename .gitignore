@@ -43,6 +43,7 @@ vignettes/*.pdf
 # Knitted output and binary assets
 *.html
 !website-tutorials/index.html
+!website-tutorials/services.html
 
 # Loose source assets (working copies committed under website-tutorials/assets/)
 Ken-Apto_edited.avif
