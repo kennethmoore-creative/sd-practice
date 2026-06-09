@@ -1,0 +1,197 @@
+---
+title: "Programming using nested `map()` operations"
+author: "Kenneth Moore"
+date: "18/07/2021"
+output: 
+  html_document:
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+    number_sections: true  ## if you want number sections at each table header
+    toc_float: true
+    theme: united  # many options for theme, this one is my favorite.
+    highlight: tango  # specifies the syntax highlighting style
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+**Required packages** 
+```{r packages, eval=FALSE}
+library(tidyverse)
+```
+
+# The general problem
+Data scientists frequently encounter problems that are best solved with iteration. We often tackle these problems with loops or--using a functional programming approach--with the `map()` family of functions. Once we identify the structure of a procedure that needs to be performed multiple times, looping or mapping helps us cut down on repetitive code, save valuable coding time, and reduce errors. 
+
+
+More advanced programmers may already be comfortable with nested loops. Nested loops iterate some procedure, which itself is iterating some other procedure. If you're more a fan of functional programming, then you'd tackle these complex iterations with nested `map()`operations. Let's take a look at a general example of when you might be interested in implementing such an approach. 
+
+
+Consider a situation where you have a set of tables with a common variable. You need to perform some transformation on that common variable across all of your tables, as in the example below. You could imagine a situation where you just individually code that operation for each table by brute force, but it would be much more efficient to code the operation once into a function, and then `map()` that function across the list of tables.
+
+![](images/map1 d1-d3.png)
+
+What if then you need to further repeat that process across a set of variables common to each table? The visual below helps to illustrate the situation. 
+
+![](images/map2 d1-d3.png)
+
+You could perform your mapping operation several times, or you could tackle the problem all in one go with a single nested mapping operation. The challenge here is mostly about how we define the functions that we'll be mapping. Let's proceed with a concrete example.
+
+# Creating fact and dimension tables
+
+A common task in data engineering and data warehousing is to organize data sets into fact and dimension tables. A well-organised data warehouse saves space and allows for more consistent and reliable storage across data sets. If you're unfamiliar with fact and dimension tables, they are a very 'googlable' topic, so we'll keep the explanation of them here brief.  
+
+![](images/f_d_tables.png) 
+
+
+Our challenge is to transform a set of raw data sets into fact and dimension tables using `map()` to keep our code concise and efficient.
+
+
+# Generate a set of tables
+
+Let's get some initial practice using `map()` by generating a list of tables with some common variables. First, we'll create a function that generates one table. Then we can use `map()` to iterate that function to generate a set of tables. We'll define a function with two arguments. The arguments can help us specify (1) a data "type" for each table and (2) the number of rows each table should contain. 
+
+
+Regarding the data type, imagine that each table could be storing data on some unique biometric for a group of individuals, such as height, weight, age or BMI. Each table will also contain several other variables. The others might express common characteristics about the individuals, such as gender, ethnicity or residential area code. The final variable in each table will be the observed value of whatever type of data is being measured. 
+
+
+For this example we'll keep everything general--if not just for ease of generating some random data! We'll use the `words` vector included in the `stringr` library within the Tidyverse to generate some random values for our categorical variables. We'll use the `rnorm()` function to generate some random data for our measure variable.
+
+```{r table function}
+# specify function
+create_random_table <- function(type, n_rows) {
+  
+  tibble(
+    data_type  = type,
+    var1       = sample(words[1:25], n_rows, replace = TRUE),
+    var2       = sample(words[101:125], n_rows, replace = TRUE),
+    var3       = sample(words[201:225], n_rows, replace = TRUE),
+    var4       = sample(words[301:325], n_rows, replace = TRUE),
+    value      = rnorm(n_rows, mean = 100, sd = 25)  
+  )
+}
+
+# test function
+create_random_table(type = "IQ", n_rows = 10)
+```
+
+
+We can see that the function is working properly. We've got a table with 10 rows, a data type of "IQ", four categorical variables with extra information about each observation, and final column with the observed IQ measure. 
+
+
+Now we can use `map()` to quickly generate a list of 10 similar tables. First, we need to create a list of 10 hypothetical data types, so we can map across that list to generate the tables. We'll use R's `LETTERS` vector to specify data types "A"-"J", and then specify that each table should contain 100 rows. 
+
+```{r map table function}
+
+types <- LETTERS[1:10]
+
+raw_data_list <- map(types, create_random_table, n_rows = 100)
+
+# preview the data. Check the third table.
+raw_data_list[[3]]
+
+```
+# Specifying a nested `map()` operation
+
+Our objective is to create a corresponding dimension table for each of the categorical variables (or dimensions) across all our tables. This will involve finding all the unique values each variable takes across all tables, and then repeating that process for each variable. 
+
+## Define first function to map
+
+The first function we should create is a function that finds all the unique values listed in a column, in a single table, and we can then map that function across all of our 10 tables. Because it's likely that some values are repeated between tables, we then need to find the unique values across our ten separate lists of unique values for each table. And once we find all the true unique values for a particular variable across all tables, we can then give those values numerical IDs--as in the explanation of dimension tables above. Let's demonstrate.
+
+
+```{r find unique values}
+
+# create function
+find_unique_vals <- function(df, var) {
+  
+  unique_vals <- df %>% 
+    distinct(.data[[var]])
+  
+  return(unique_vals)
+}
+
+# use map_dfr to place each distinct list of unique values for var1 in a single table;
+# find unique values within the mapped table;
+# assign a unique id to each unique value.
+dim_table_var1 <- map_dfr(raw_data_list, find_unique_vals, var = "var1") %>% 
+  distinct(var1) %>% 
+  mutate(id_var1 = 1:n())
+
+# examine dimension table
+dim_table_var1
+
+```
+We can see that we've now got a comprehensive list of all the values listed across all tables for 'var1'. We've further assigned a unique ID for each of the distinct values. Hence, this is our dimension table for `var1`. 
+
+
+## Define the nested function
+
+
+We now need to encode the mapping procedure above that creates `dim_table_var1` into a general function that can itself be mapped across a list of all our variables to create a list dimension tables corresponding to each variable.
+
+
+```{r create dim table function}
+
+# define function
+create_dim_table <- function(var, data_set) {
+  
+  id_var <- str_glue("id_{var}")
+  
+  d_table <- map_dfr(data_set, find_unique_vals, var = var) %>% 
+    distinct(.data[[var]]) %>% 
+    mutate(!!id_var := 1:n())
+  
+  return(d_table)
+}
+
+# specify list of variables 
+var_list <- c("data_type", "var1", "var2", "var3", "var4")
+
+# map across all the variables
+dim_table_list <- map(var_list, create_dim_table, data_set = raw_data_list)
+
+# rename each dimension table in the list according to its corresponding variable
+names(dim_table_list) <- str_glue("dim_table_{var_list}")
+
+# view one of the dimension tables
+dim_table_list$dim_table_var4
+
+```
+
+# Conclusion
+
+After specifying two functions, our nested mapping operation produced the full list of dimension tables `dim_table_list` in only one line of code. 
+
+
+```{r fact tables}
+
+# fact table function
+# create_fact_table <- function(df) {
+#   
+#   f_table <- df %>% 
+#     left_join(d_table_lga, by = "lga") %>% 
+#     left_join(d_table_service_centre, by = "service_centre") %>% 
+#     left_join(d_table_offense_group, by = "offense_group") %>% 
+#     left_join(d_table_legal_status, by = "legal_status") %>% 
+#     select(-c(lga, service_centre, offense_group, legal_status)) %>% 
+#     relocate(value, .after = id_legal_status)
+#     
+#   return(f_table)
+# }
+
+
+# map across all tables
+# f_table_list <- map(clean_data_list, create_fact_table)
+```
+
+
+
+
+
+
+
+
+

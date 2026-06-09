@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ken Moore — Data · Analytics · Education</title>
-  <meta name="description" content="Ken Moore — data scientist and educator offering analytics consulting and education services internationally. Tutorials, publications, and professional services.">
+  <title>Ken Moore — AI · Analytics · Education</title>
+  <meta name="description" content="Ken Moore — data scientist and educator offering data solutions and education services internationally. Tutorials, publications, and professional services.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&family=Fira+Sans:wght@500&display=swap" rel="stylesheet">
@@ -261,8 +261,54 @@
 
     .service-card p {
       color: var(--text-light);
-      font-size: 0.95rem;
-      line-height: 1.75;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-bottom: 1.4rem;
+    }
+
+    .service-lines {
+      list-style: none;
+    }
+
+    .service-line {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--gray-light);
+    }
+
+    .service-line:last-child {
+      border-bottom: none;
+    }
+
+    .service-icon {
+      flex-shrink: 0;
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+    }
+
+    .service-link {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.93rem;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+
+    .service-link:hover {
+      color: var(--amber);
+    }
+
+    .service-card h3 a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .service-card h3 a:hover {
+      color: var(--amber);
+      transition: color 0.2s;
     }
 
     /* ─── Tutorials ─── */
@@ -578,15 +624,16 @@
       <div class="about-grid">
         <div class="about-label-col">
           <p class="section-label">About</p>
-          <h2 class="section-title">Data scientist,<br>educator,<br>systems thinker.</h2>
+          <h2 class="section-title">Data scientist,<br>strategist,<br>systems thinker.</h2>
         </div>
         <div class="about-text">
           <!-- BIO_START -->
-          <p>I help organisations and institutions think clearly about complex problems, emerging technologies and AI.
-          Together we build a stronger understanding of current issues and future possibilities.  We create blueprints
-          for how available data can support lasting solutions, and then we implement.</p>
-          <p>I'm a builder and a facilitator. My teams connect disparate systems, erect new architectures and elevate
-          capacity &amp; capability.</p>
+          <p>I help organisations learn and act when faced with complex problems.</p>
+          <p>Together we build a stronger solutions. We leverage tried and true methods along side
+          emerging technologies and AI -- creating blueprints for how available data can support
+          lasting change -- and then we implement.</p>
+          <p>I'm a maker and a facilitator. My teams connect disparate systems, assemble new architectures,
+          and elevate capacity &amp; capability.</p>
           <p>My practice is international, serving Australia, Indonesia and
           the United States, with an expanding network across Asia and beyond.</p>
           <!-- BIO_END -->
@@ -612,14 +659,61 @@
       <p class="section-label">What I Do</p>
       <h2 class="section-title">Services</h2>
       <div class="services-grid">
+
         <div class="service-card">
-          <h3>Data &amp; Automation Services</h3>
-          <p>Data science, engineering and optimisation for healthcare, education, private sector or government. Exploratory analysis, auditing & diagnostics, full modeling projects and end-to-end pipelines, I work with your data to surface answers and automate processes.</p>
+          <h3><a href="services.html#bespoke-solutions">Bespoke Solutions</a></h3>
+          <p>End-to-end technical delivery — from raw data to production-ready systems.</p>
+          <ul class="service-lines">
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
+              <a href="services.html#automation-optimisation" class="service-link">Automation &amp; Optimisation</a>
+            </li>
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></span>
+              <a href="services.html#scenario-models" class="service-link">Scenario Models &amp; Decision Analytics</a>
+            </li>
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></span>
+              <a href="services.html#sector-geospatial" class="service-link">Sector &amp; Geospatial Analysis</a>
+            </li>
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></span>
+              <a href="services.html#ml-predictive" class="service-link">ML, Statistics &amp; Predictive Models</a>
+            </li>
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><line x1="2" y1="20" x2="22" y2="20"></line></svg></span>
+              <a href="services.html#bi-dashboards" class="service-link">BI, Reporting &amp; Dashboards</a>
+            </li>
+          </ul>
         </div>
+
         <div class="service-card">
-          <h3>Education &amp; Training</h3>
-          <p>Curriculum design, assessment, systems thinking workshops, and data literacy programs. I&rsquo;ve built and delivered training for professional and academic audiences internationally, and I can tailor programs to your organization&rsquo;s specific context and goals.</p>
+          <h3><a href="services.html#analytics-advisory">Analytics &amp; Education Advisory</a></h3>
+          <p>Strategic guidance and capability building for teams navigating data-driven change.</p>
+          <ul class="service-lines">
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg></span>
+              <a href="services.html#ai-readiness" class="service-link">AI Readiness &amp; Adoption</a>
+            </li>
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg></span>
+              <a href="services.html#data-architecture" class="service-link">Data &amp; System Architecture</a>
+            </li>
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
+              <a href="services.html#performance-measurement" class="service-link">Performance Measurement</a>
+            </li>
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+              <a href="services.html#education-training" class="service-link">Education &amp; Training</a>
+            </li>
+            <li class="service-line">
+              <span class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+              <a href="services.html#workshop-facilitation" class="service-link">Workshop Facilitation</a>
+            </li>
+          </ul>
         </div>
+
       </div>
     </div>
   </section>
@@ -627,8 +721,8 @@
   <!-- Tutorials -->
   <section id="tutorials">
     <div class="section-inner">
-      <p class="section-label">Free Learning Resources</p>
-      <h2 class="section-title">Analytics Tutorials</h2>
+      <p class="section-label">Free Resources</p>
+      <h2 class="section-title">Modeling Dynamic Systems</h2>
       <p class="tutorials-intro">Working through real quantitative methods from scratch &mdash; clean R implementations with clear explanations. Currently covering System Dynamics from the MIT Road Maps series. More topics and series coming.</p>
       <div class="tutorial-grid">
         <a href="tut-01-first-order-positive-feedback.html" class="tutorial-card">
@@ -670,6 +764,16 @@
           <div class="tutorial-num">08 &middot; System Dynamics</div>
           <h4>Damped Oscillations &mdash; The Real Pendulum</h4>
           <p>Friction as a structural factor; amplitude decay</p>
+        </a>
+        <a href="tut-09-reading-the-shape-pt1.html" class="tutorial-card">
+          <div class="tutorial-num">09 &middot; System Dynamics</div>
+          <h4>Reading the Shape — Part 1</h4>
+          <p>Linear vs logistic model fit; S-shaped organisational data</p>
+        </a>
+        <a href="tut-09-reading-the-shape-pt2.html" class="tutorial-card">
+          <div class="tutorial-num">09 &middot; System Dynamics</div>
+          <h4>Reading the Shape — Part 2</h4>
+          <p>SD model from logistic fit; policy levers; scenario analysis</p>
         </a>
       </div>
       <div class="tutorials-footer">

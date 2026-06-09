@@ -383,6 +383,48 @@ ggplot(sim_results, aes(x = date, y = burnt_out_staff, colour = scenario)) +
     axis.text.x     = element_text(angle = 30, hjust = 1)
   )
 
+ggplot(sim_results, aes(x = date, y = burnt_out_staff, colour = scenario)) +
+  geom_line(linewidth = 0.9) +
+  geom_point(
+    data = tidy_data,
+    aes(x = date, y = burnt_out_staff),
+    colour = "grey50", size = 1.5, alpha = 0.7, inherit.aes = FALSE
+  ) +
+  geom_hline(yintercept = 25, linetype = "dashed",
+             colour = "grey40", linewidth = 0.5) +
+  annotate("text", x = origin_date, y = 28,
+           label = "Target: < 25 employees", colour = "grey40",
+           size = 3, hjust = 0) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  scale_colour_manual(values = c(
+    "Current policy"  = "#E74C3C",
+    "Earlier trigger" = "#F39C12",
+    "Faster response" = "#3498DB",
+    "Both levers"     = "#27AE60"
+  )) +
+  labs(
+    title    = "Employee Attrition — Policy Scenarios",
+    subtitle = "Grey points: observed data  |  Lines: SD model under each policy",
+    x        = NULL,
+    y        = "Employees leaving (count)",
+    colour   = "Policy scenario"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x     = element_text(angle = 30, hjust = 1)
+  )
+
+ggsave(
+  filename = "website-tutorials/assets/services-scenario-models-decision-analytics.png",
+  width    = 7,
+  height   = 5,
+  units    = "in",
+  dpi      = 120,
+  bg       = "white"
+)
+
 # ── Equilibrium by scenario ───────────────────────────────────────────────────
 #
 #   Scenario          K (implied)   Equilibrium (simulated)

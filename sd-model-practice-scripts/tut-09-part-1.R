@@ -33,56 +33,48 @@ library(deSolve)
 # SECTION 1: load and explore the data
 # ------------------------------------------------------------------------------
 
-# ── Step 1: Raw data (wide format — as received from HR system / Excel export)─
+# ── Step 1: Data ──────────────────────────────────────────────────────────────
 #
 # Monthly count of staff recorded as working at reduced capacity due to burnout.
 # Figures are rounded to the nearest whole number.
 
-raw_data <- tribble(
-  ~period,   ~burnt_out_staff,
-  "Jan-23",  11,
-  "Feb-23",  12,
-  "Mar-23",  17,
-  "Apr-23",  13,
-  "May-23",  19,
-  "Jun-23",  21,
-  "Jul-23",  24,
-  "Aug-23",  39,
-  "Sep-23",  35,
-  "Oct-23",  49,
-  "Nov-23",  57,
-  "Dec-23",  59,
-  "Jan-24",  63,
-  "Feb-24",  61,
-  "Mar-24",  59,
-  "Apr-24",  66,
-  "May-24",  70,
-  "Jun-24",  65,
-  "Jul-24",  69,
-  "Aug-24",  67,
-  "Sep-24",  71,
-  "Oct-24",  72,
-  "Nov-24",  68,
-  "Dec-24",  70
-)
+staff_burnout_data <- tribble(
+  ~date,          ~burnt_out_staff,
+  "2023-01-01",   11,
+  "2023-02-01",   12,
+  "2023-03-01",   17,
+  "2023-04-01",   13,
+  "2023-05-01",   19,
+  "2023-06-01",   21,
+  "2023-07-01",   24,
+  "2023-08-01",   39,
+  "2023-09-01",   35,
+  "2023-10-01",   49,
+  "2023-11-01",   57,
+  "2023-12-01",   59,
+  "2024-01-01",   63,
+  "2024-02-01",   61,
+  "2024-03-01",   59,
+  "2024-04-01",   66,
+  "2024-05-01",   70,
+  "2024-06-01",   65,
+  "2024-07-01",   69,
+  "2024-08-01",   67,
+  "2024-09-01",   71,
+  "2024-10-01",   72,
+  "2024-11-01",   68,
+  "2024-12-01",   70
+) |>
+  mutate(date = as.Date(date), t = row_number())
 
-print(raw_data)
+# ── Step 2: Plot ──────────────────────────────────────────────────────────────
 
-# ── Step 2: Reshape to tidy format ────────────────────────────────────────────
-
-tidy_data <- raw_data |>
-  mutate(date = as.Date(paste0("01-", period), format = "%d-%b-%y")) |>
-  arrange(date) |>
-  mutate(t = row_number())
-
-# ── Step 3: Plot ──────────────────────────────────────────────────────────────
-
-ggplot(tidy_data, aes(x = date, y = burnt_out_staff)) +
+ggplot(staff_burnout_data, aes(x = date, y = burnt_out_staff)) +
   geom_line(linewidth = 0.8, colour = "#619CFF") +
   geom_point(size = 1.8, colour = "#619CFF") +
   geom_hline(yintercept = 25, linetype = "dashed",
              colour = "grey40", linewidth = 0.5) +
-  annotate("text", x = min(tidy_data$date), y = 17,
+  annotate("text", x = min(staff_burnout_data$date), y = 17,
            label = "Target: < 25 staff", colour = "grey40",
            size = 3, hjust = 0) +
   scale_y_continuous(limits = c(0, 75)) +
@@ -96,22 +88,22 @@ ggplot(tidy_data, aes(x = date, y = burnt_out_staff)) +
   theme_minimal(base_size = 12) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-# ── Step 4: Linear regression baseline ────────────────────────────────────────
+# ── Step 3: Linear regression baseline ────────────────────────────────────────
 
-lm_fit  <- lm(burnt_out_staff ~ t, data = tidy_data)
+lm_fit  <- lm(burnt_out_staff ~ t, data = staff_burnout_data)
 r_sq_lm <- summary(lm_fit)$r.squared
 
 lm_fitted_curve <- tibble(
-  date   = seq(min(tidy_data$date), max(tidy_data$date), length.out = 200),
+  date   = seq(min(staff_burnout_data$date), max(staff_burnout_data$date), length.out = 200),
   fitted = predict(lm_fit,
-                   newdata = tibble(t = seq(1, max(tidy_data$t), length.out = 200)))
+                   newdata = tibble(t = seq(1, max(staff_burnout_data$t), length.out = 200)))
 )
 
 ggplot() +
-  geom_line(data  = tidy_data,
+  geom_line(data  = staff_burnout_data,
             aes(x = date, y = burnt_out_staff),
             linewidth = 0.6, colour = "#619CFF", alpha = 0.5) +
-  geom_point(data = tidy_data,
+  geom_point(data = staff_burnout_data,
              aes(x = date, y = burnt_out_staff),
              size = 1.5, colour = "#619CFF", alpha = 0.5) +
   geom_line(data  = lm_fitted_curve,
@@ -119,7 +111,7 @@ ggplot() +
             linewidth = 1.2, colour = "#619CFF") +
   geom_hline(yintercept = 25, linetype = "dashed",
              colour = "grey40", linewidth = 0.5) +
-  annotate("text", x = min(tidy_data$date), y = 27,
+  annotate("text", x = min(staff_burnout_data$date), y = 27,
            label = "Target: < 25 staff", colour = "grey40",
            size = 3, hjust = 0) +
   scale_y_continuous(limits = c(0, 75)) +
@@ -150,7 +142,7 @@ ggplot() +
 # data automatically — no manual guessing needed. nls() then fits directly
 # to the raw staff counts with no rescaling or pseudo-trial tricks.
 
-fit_nls <- nls(burnt_out_staff ~ SSfpl(t, A, B, xmid, scal), data = tidy_data)
+fit_nls <- nls(burnt_out_staff ~ SSfpl(t, A, B, xmid, scal), data = staff_burnout_data)
 
 coefs  <- coef(fit_nls)
 L_fit  <- coefs[["A"]]
@@ -163,24 +155,24 @@ tibble(
   value     = c(round(K_fit, 1), round(L_fit, 1), round(r_fit, 3), round(t0_fit, 1))
 ) |> print()
 
-r_sq_nls <- cor(tidy_data$burnt_out_staff, fitted(fit_nls))^2
+r_sq_nls <- cor(staff_burnout_data$burnt_out_staff, fitted(fit_nls))^2
 
 tibble(
   model     = c("Linear", "Logistic (nls)"),
   r_squared = round(c(r_sq_lm, r_sq_nls), 3)
 ) |> print()
 
-t_fine       <- seq(1, max(tidy_data$t), length.out = 200)
+t_fine       <- seq(1, max(staff_burnout_data$t), length.out = 200)
 fitted_curve <- tibble(
-  date   = seq(min(tidy_data$date), max(tidy_data$date), length.out = 200),
+  date   = seq(min(staff_burnout_data$date), max(staff_burnout_data$date), length.out = 200),
   fitted = predict(fit_nls, newdata = tibble(t = t_fine))
 )
 
 ggplot() +
-  geom_line(data  = tidy_data,
+  geom_line(data  = staff_burnout_data,
             aes(x = date, y = burnt_out_staff),
             linewidth = 0.6, colour = "grey55", alpha = 0.7) +
-  geom_point(data = tidy_data,
+  geom_point(data = staff_burnout_data,
              aes(x = date, y = burnt_out_staff),
              size = 1.5, colour = "grey55", alpha = 0.7) +
   geom_line(data  = lm_fitted_curve,
@@ -191,7 +183,7 @@ ggplot() +
             linewidth = 1.2) +
   geom_hline(yintercept = 25, linetype = "dashed",
              colour = "grey40", linewidth = 0.5) +
-  annotate("text", x = min(tidy_data$date), y = 17,
+  annotate("text", x = min(staff_burnout_data$date), y = 17,
            label = "Target: < 25 staff", colour = "grey40",
            size = 3, hjust = 0) +
   scale_colour_manual(values = c("Linear" = "#E74C3C", "Logistic (nls)" = "#619CFF")) +
@@ -210,4 +202,53 @@ ggplot() +
     legend.position = "bottom",
     axis.text.x     = element_text(angle = 30, hjust = 1)
   )
+
+
+
+
+ggplot() +
+  geom_line(data  = staff_burnout_data,
+            aes(x = date, y = burnt_out_staff),
+            linewidth = 0.6, colour = "grey55", alpha = 0.7) +
+  geom_point(data = staff_burnout_data,
+             aes(x = date, y = burnt_out_staff),
+             size = 1.5, colour = "grey55", alpha = 0.7) +
+  geom_line(data  = lm_fitted_curve,
+            aes(x = date, y = fitted, colour = "Linear"),
+            linewidth = 0.75, linetype = "dotted") +
+  geom_line(data  = fitted_curve,
+            aes(x = date, y = fitted, colour = "Logistic (nls)"),
+            linewidth = 1.2) +
+  annotate("text", x = min(staff_burnout_data$date) + diff(range(staff_burnout_data$date)) * (1/3), y = 15,
+           label = paste0("Linear R² = ", round(r_sq_lm, 3),
+                          "  |  Logistic R² = ", round(r_sq_nls, 3)), colour = "grey40",
+           size = 6, hjust = 0) +
+  scale_colour_manual(values = c("Linear" = "#E74C3C", "Logistic (nls)" = "#619CFF")) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  labs(
+    title    = "Staff Attrition — Linear vs Logistic Fit",
+    x        = NULL,
+    y        = "Staff on reduced capacity (count)",
+    colour   = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x     = element_text(angle = 30, hjust = 1)
+  )
+
+ggsave(
+  filename = "website-tutorials/assets/services-ml-statistics-predictive-models.png",
+  width    = 7,
+  height   = 5,
+  units    = "in",
+  dpi      = 120,
+  bg       = "white"
+)
+
+
+
+
+
 

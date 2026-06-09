@@ -1,0 +1,442 @@
+---
+title: "Values analysis with DEA"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.width=7.5)
+```
+
+```{r packages, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(ggrepel)
+library(scales)
+library(glue)
+library(lpSolve)
+
+load("data/dea_data_01.rda")
+load("data/dea_base_results.rda")
+load("data/optimise_dmu_output.rda")
+```
+
+
+# Objective
+
+In the is chapter we raise our level of compentancy with the use of DEA. We harness the power of the technique to generate actionable insight for the purpose of operational decision-making for NFPs. By the end of the chapter we will have accomplised three things. First, we'll produce specific types of insights that are needed to pursue the non-financial objectives of NFPs. Next we'll learn how to visualise the results of DEA for clear interpretation of results and for presentation to decision-makers. Third, we'll discuss explicitly why and how you would miss such insights if you just downloaded a DEA package from CRAN.  
+
+# What is values analysis with DEA? 
+
+In DEA values analysis we step through the individual value weight scheme outputs of the DEA algorithm and test them against the practical and contextual circumstances of the organisations on the ground. The analysis has the potential to underscore what is working among a field of organisation, what isn't, and whether performance aligns with key stakeholder interests. DEA value weight schemes serve as a characterisation of an organisation's de facto operating model (production function). Solutions to the DEA model can thus be tested and compared across the field of organisations to generate insight on relative performance and illuminate precicely how performance gaps should be closed on an organisation-by-organisation basis. 
+
+
+Just like with TI values analysis, we use the numerical values of the input and output weights to reflect true human values. Procedurally, we test the sensitivity of end results to changes in the value weighting scheme of the inputs and outputs, which compose the productivity index. We do so in an informed way that takes into account (A) the operational circumstances and context of the NFP, (B) the social mandate or strategic objectives of the NFP, and (C) key stakeholder interests. 
+
+
+The prime difference in DEA values analysis from that of TI is that that we do not construct and test plausible value weight ranges. With DEA values analysis we test the individual and empirically generated value weigting schemes produced by the DEA algorithm. The different approach has both drawbacks and advantages. First we highlight the drawback. As we learned in the previous chapter, the mathematical formulation of DEA serves to optimise the productivity ratio of each organisation in order to provide its most favourable performance portrayal. While the method is able to tease out such a portrayal, however, it may have done so in a way that does not practically make sense regarding the delivery of the service on the ground. Hence, while DEA-generated weighting schemes are both empirical and objective, unfortunately the numerical values of individual input and output value weights often stray from what is plausible or reasonable in a practical sense. For example, in order to give a multi-input, multi-output organisation its most favourable performance portrayal, some of the variables are often given a value of zero, or if not zero, something unreasonably small. If on the other hand each factor of production and each output is essential to the mandate of the organisation, then proceding with a frontier analysis may give an interesting description of performance, but takin the results at face value will not be helpful when it comes to decision-making. The content of this chapter will help you avoid this. 
+
+
+On the other hand, the advantage of DEA values analysis is that the productivity descriptions produced by the algorithm, can be very telling regarding individual organisations' strengths and weaknesses. The results, by default, provide each organisation with its most optimal performance portrayal, and it does so by finding the areas of performance where the organisation is excelling and then emphsises them. Hense, DEA algorithms has the potential to draw out what is likely the kernal of focus of the organisation in terms of generating high performance. That is, amidst all the the noise in the data, DEA results can tell you what has really been done well, and what appears to have been neglected, on an organisation-by-organisation basis. 
+
+# A detailed look at values analysis with DEA
+ 
+## The procedure
+
+
+
+# DEA Values Analysis Tutorial: Making decisions and moving forward
+
+## Setup
+```{r setup tute, eval=FALSE}
+# packages
+library(knitr)
+library(tidyverse)
+library(scales)
+library(ggrepel) # prevents overlapping text in charts
+library(glue)
+
+# data
+load("data/dea_data_01.rda")
+load("data/dea_base_results.rda")
+load("data/optimise_dmu_output.rda")
+```
+
+
+## Introduction
+Let's first expand upon the scenario presented in the previous chapter, where we are helping a government agency conduct a process evaluation of six organisations contracted to delivery training workshops in six different locations. The reason why the process evaluation has been commissioned is because the training service providers' quarterly reports have indicated that two distince approaches to implementing the trainings have emerged. Organisations A, B and C (Group 1) have are employing a strategy that involves running as few workshops as possible but recruiting as many participants as possible for each one. Organisations D, E and F (Group 2) are persuing a strategy where they run more workshops with fewer participants in order to provide better quality assurance and ensure a more positive participant experience. 
+
+
+Our objective is use these insights from the quarterly reports to determine which organisations are performing best against their own objectives and also to determine which approach aligns best with the government agency's interests in approving this new training program in the first place.
+
+
+First, let's recall the DEA results from the previous chapter. Pay special attention to the top performing institutions in each group.
+
+```{r DEA base results, echo=FALSE}
+# review results
+dea_base_results %>% 
+  mutate(value = round(value, 3)) %>% 
+  spread(key = "dmu", value = "value") %>% 
+  kable()
+```
+
+The table above suggests that for Group 1, Organisation C is the most productivem and for Group 2, Organisation D is the most productive. Within each group, these are the organisations whose optimal performance portrayals sets them farther apart from their peers. So as we proceed with the analysis, we want to pay special attention to Organisations C and D.
+
+## Prepare the data for values analysis
+
+First we need to get all our data in the same place. Let's combine our DEA results with initial inputs and outputs data set. We do this because each time we ran the DEA algorithm, we got to productivity score for the organisation whose productivity portrayal was being optimsed, but we didn't get the scores for the other organisations under the target organisation's value weighting scheme. We can easily find with that productivity score are, however, by using the weights provided along with the original performance data. 
+
+
+First, let's isolate only the value weights from the DEA output.
+
+```{r combine}
+
+# filter out the optimal efficiency scores, and
+# rename some variables for more clarity
+results_weights <- dea_base_results %>% 
+  filter(variable != "Optimal Efficiency") %>% 
+  mutate(variable = str_remove(variable, "Weight "),
+         dmu = as.character(dmu)) %>% 
+  rename(opt_weight = value) %>% 
+  arrange(dmu, variable)
+
+# view result
+glimpse(results_weights)
+```
+
+We've now got a simpler data frame indicating the optimal weights for each variable for each DMU. Next, pivot the initial dataset to long format, and combine with the DEA output. 
+
+``` {r reshape initial data}
+# reshape initial data set
+dea_data_long <- dea_data_01 %>% 
+  pivot_longer(x_sqrft:y_certs, names_to = "variable", values_to = "value") %>% 
+  arrange(dmu, variable)
+
+# join together and organise for clarity
+dea_all_data <- dea_data_long %>% 
+  left_join(results_weights) %>% 
+  separate(variable, c("type", "variable"), sep = "_")
+
+glimpse(dea_all_data)
+```
+
+We've now got all of our data in one place--the original input-output data, and the DEA value weights that optimise the productivity portrayal for each organisation. Our next step is to begin understanding the significance of each optimal value weighting scheme. 
+
+## Production function analysis
+
+If we're going to understand the significance of the different weighting schemes, we need to put them in a form that is easier to understand. We want to easily communicate the emphasis that the DEA algorithm placed on each input-output variable for each organisation's optimal productivity portrayal. Better understanding which elements have been emphasised will give more clarity to how each organisation achieved its most favourable produtivity score. In other words, it will tell us the areas where the organisations are performing the best, relative to their peers. Conversely, the variables that are not emphasised for each organisation, are likely where the others are performing better.   
+
+We'll need to transform the data slightly to best communicate how the DEA algorithm emphasises each variable. We can achieve this in two steps. First, we have to recognise the difference in emphasising outputs vs. inputs. Outputs are intuitive. Outputs appear in the numerator of the productivity ratio, so when the DEA algorithm gives one output element a greater value weight than another, it serves to emphasise that output relative to the other. Inputs are counter-intuitive. Inputs appear in the denominator of the productivity ratio, so the smaller the value weight, the greater the emphasis. Dividing by a smaller number increases the value of the ratio. So in order to call out the relative emphasis for any input-variable, we'll subtract the DEA-provided value weight from one. Any input or output variable for which the DEA algorithm assigns a 'zero' value weight is automatically considered as null emphasis because the zero value weight effectively excludes that variable from being factored into the calculation of the productivity ratio.
+
+The next step is to normalise the weights by putting them on a scale that's easier to understand. We'll transform and normalise the value weights so that the total emphasis for an organisation's inputs will sum to 100%, and the emphasis for an organisation's outputs will also sum to 100%. Below we'll interpret the results for Organisation A to clarify what this step accomplishes.
+
+```{r relative_weights}
+# take the inverse of the input weights for more intuitive interpretation
+weight_emphasis <- dea_all_data %>% 
+  
+  # normalise and rescale the weights by type
+  group_by(dmu, type) %>% 
+  mutate(emphasis = opt_weight/sum(opt_weight)) %>% 
+  ungroup() %>% 
+  select(-opt_weight, -value)
+
+# view results for Org A
+kable(filter(weight_emphasis, dmu == "Org_A"))
+```
+
+Results for Organisation A tell us that, for inputs, the DEA algorithm has given equal emphasis to the size of the training facility and the number of workshops delivered. For outputs, however, far greater emphasis is placed on the amount of certifications awarded than the number of participants the workshops attract. Let's now visualise the results for the whole field of organisations, so we can better interpret what's happening with this data. 
+
+```{r op_model_vis}
+
+plot_emphasis <- function(df) {
+  
+
+  p <- df %>% 
+    ggplot(aes(x = variable, y = emphasis)) +
+    geom_segment(aes(x=variable, xend=variable, y=0, yend=emphasis), color = "black", size=0.5) +
+    geom_point(aes(color=type), size=3, shape = "circle") +
+    coord_flip() +
+    facet_wrap(~ dmu, scales = "free",
+               labeller = labeller(dmu = function(x){paste(x, "Model", sep = " ")})) +
+    scale_color_discrete(labels = c("Inputs", "Outputs")) +
+    scale_y_continuous(labels = function(x) {scales::percent(x, accuracy = 1L)},
+                       breaks = c(0.5, 1),
+                       limits = c(0,1.1)) +
+    theme(legend.title = element_blank(),
+          axis.title.y=element_blank()) +
+    labs(title = "Ideal operating models as identified by DEA",
+         y = "x-axis: emphasis for optimisation") # remember coord_flip above
+
+return(p)
+}
+
+# run function
+plot_emphasis(weight_emphasis)
+```
+
+The results show the areas of performance where each organisation is excelling, or rather, which areas of performance when emphsasised give the organisation its most favorable productivity portrayal relative to the others. First direct your focus toward Organisations C and D. Recall from the scenario introduction section that we have some contextual information about each service provider's strategy. We know that organisations A B and C have been focusing more on running fewer workshops but recruiting as many people to attend each one as possible. Whereas Organisations D, E and F have been focusing more on training quality. Further, our DEA results show that Organisation C was the most productive among the first group, and D was most productive among the second group. The chart above further captures these two approaches. The figure portraying Org C's optimal operating model suggests that emphasising the ratio, 'participants' / 'workshops' gives results in it's most favorable portrayal. That is, relative to the other organisations, it is doing a better job at minimising the number of workshops and maximising the number of participants. Notice how Organisation D's operating model is different. Org D has excelled in creating a more intimate space with a smaller training facility and converting workshop participation into workshop completions with a certificate. 
+
+
+At this point you might ask yourself, why don't Organisation A and B's operating model more resemble Org C's, since they are pusuing similar strategies. And why don't Org E and F's model more resemble Org D's? The most simple answer could be that they have not been as effective at implementing their strategies. The strategy information is a key piece of contextual information we can use in our analysis to interpret results, but the DEA algorithm gives a context-free assessment of how each organisation maximises its productivity portrayal. There will always be more and less productive organisations, and more and less effective organisations at implementing their strategies. Organisations C and D have shown to epitomise their respective strategies, and it shows up in the data. 
+
+
+## Values analysis for examining the production frontier
+
+We have interpreted some of the most significant results of our DEA analysis. A few questions remain, however. How do we best compare these organisations on a level playing field? How can we best characterise performance gaps between them? And, which of the operational models above best reflects the funder's intentions in commisioning these training programs in the first place? These questions are at the heart of our values analysis. 
+
+
+Let's frame the first question regarding comparisons on level playing field. Recall the optimal efficiency scores determined by the DEA algorithm.
+
+```{r recall scores, echo=FALSE}
+dea_base_results %>% 
+  mutate(value = round(value, 3)) %>% 
+  spread(key = "dmu", value = "value") %>% 
+  filter(variable == "Optimal Efficiency") %>% 
+  kable()
+
+```
+
+These scores are determined, essentially, by allowing each organisation to play by its own rules. The weighting schemes that produce these results are different for each organisation and thus represent a different set of values being emphasised for each organisation. This means we have to be cautious in taking the results at face-value. We shouldn't assume, for example that all else held equal, Organisation C is the most productive with a score of 1.188. That may not be the case in practice or in principle. 
+
+
+Above we examined multiple operational models that emphasise different aspects of performance for each organisation. What if we selected one or two of these models that best represent what the organisations are set up to achieve and test how each of the organistion performs under that single value weighting scheme. For example. Organisation C significantly outperforms the other organisations when emphasising its own strengths, but what if we look at Org C's performance through the lense that gave Organisation D its most favorable productivity portrayal? This is how we can begin addressing the second and third questions raised above regarding real performance gaps and assessing performance based on the funder's intentions, rather than by how each organisation would prefer to be judged.
+
+
+What we need to do is build a more comprehensive data set that computes each organisation's productivity based on each of the different operating models coverd above. To do this we'll design a function that isolate's one of organisation's optimal value weighting schemes and then computes productivity scores for each organisation against that scheme. We'll then we'll iterate that function using `map()` for each of the different value weighting schemes.  
+
+```{r alt_scores}
+
+# define function parameters
+alt_scores <- function(org, df) {
+  
+  # number of DMUs
+  N <- length(unique(df$dmu))
+  
+  # isolate one value weighting scheme
+  org_scheme <- df %>% 
+    filter(dmu == org) %>% 
+    .$opt_weight
+  
+  # apply that scheme to each of the other DMUs
+  org_scheme_scores <- df %>% 
+    mutate(opt_weight = rep(org_scheme, N), 
+           scores = value*opt_weight) %>% 
+    
+    # find the numerator (output) and denominator (input) indexes
+    # for the productivity ratio using the value weights
+    group_by(dmu, type) %>% 
+    summarise(index = sum(scores)) %>% 
+    ungroup() %>% 
+    
+    # divide outputs by inputs to find productivity
+    pivot_wider(names_from = type, values_from = index) %>% 
+    mutate(prod_index = y/x,
+           scheme = paste(org, "scheme", sep = "_")) %>% 
+    select(scheme, everything())
+  
+  return(org_scheme_scores)
+}
+
+# list all DMUs to iterate the function
+dmu_names <- unique(dea_all_data$dmu)
+
+# map function for each dmu
+all_scores <- map_dfr(dmu_names, alt_scores, dea_all_data)
+
+# check result
+glimpse(all_scores)
+
+```
+
+Just as with TI, we've isolated the input and output indexes, as well as a final productivity index for each organisation under each value weighting scheme produced by the initial DEA. The individual input and output indexes will allow us to later plot these organisations on a 2-D plane with a frontier, so that we can compare them to one another. First, though, let's reshape the data, so we can get our heads around the results. Just as in previous chapters, we'll use some feature scaling so that visualisation and interpretation of results is more intuitive. We need to do this because, as you can see in the data, even though the DEA algorithm sets a constraint on all other organisations that productivity cannot be greater than one, sometimes the productivity score for the organisation being optimised ends up marginally greater than one. Normalising from here just makes results more intuitive, and the variation in the data is still preserved. 
+
+```{r efficiency_matrix}
+
+# Calculate technical efficiency scores, so
+# all orgs fall between 0 and 1, and
+# pivot to wide format
+efficiency_schemes_matrix <- all_scores %>% 
+  select(-c(x,y)) %>% 
+  group_by(scheme) %>%
+  mutate(TE = prod_index/max(prod_index)) %>% 
+  ungroup() %>% 
+  
+  # rename for brevity
+  mutate(TE = round(TE, 2),
+         scheme =  str_replace_all(scheme, c("Org_A_scheme" = "Scheme_A", 
+                                             "Org_B_scheme" = "Scheme_B",
+                                             "Org_C_scheme" = "Scheme_C",
+                                             "Org_D_scheme" = "Scheme_D",
+                                             "Org_E_scheme" = "Scheme_E",
+                                             "Org_F_scheme" = "Scheme_F"))) %>% 
+  select(-prod_index) %>% 
+  pivot_wider(names_from = scheme, values_from = TE)
+
+kable(efficiency_schemes_matrix)
+```
+
+The efficiency matrix lists the technical efficiency scores for each organisation under each value weighting scheme. If we take a look at the results from Schmes C and D, we can see the stark difference in how productivity is portrayed. Under Org D's scheme, Org C performs at the bottom, and vice versa. 
+
+
+We'll now direct our attention back to the `all_scores` data set. Using the x and y indexes, we'll create a visualisation for these organisations that defines a production frontier to get a clear visual picture of theimplications of the alternative value weighting schemes on performance portrayals.
+
+
+There are a few insights and details worth noting before we draw our plots. First, we'll chart the organisations on an x-y plane, and the frontier will eminate from the origin. Since we are defining the frontier based on the portrayal of the highest performing organisation under each scheme, we will draw a line from the origin through the point of the higest performing organisation to visualise the frontier. Any position below the frontier line signifies a lower level of outputs (y-index), and any position to the right of the frontier line signifies a higher level of inputs (x-index). Both circumstances mean a lower level of productivity than the frontier. 
+
+## Visualize the frontiers
+
+Create a ploting function to visualise results for once weighting scheme, and then use the `map()` function to create a plot for each scheme.
+```{r frontier vis}
+
+# define function parameters to make plot for 
+# a single value weighting schemes
+plot_frontiers <- function(sch, df) {
+  
+  # normalise results, as we did in the efficiency matrix, so
+  # all productivity scores will fall between 0 and 1
+  data <- df %>%
+    filter(scheme == sch) %>% 
+    mutate(TE = prod_index/max(prod_index)) 
+  
+  # find slope of frontier line
+  frontier_slope <- data %>% 
+    filter(TE == max(TE)) %>% 
+    filter(y == max(y)) %>% 
+    mutate(slope = y/x) %>% 
+    .$slope
+  
+  # plot organisations against the frontier
+  plot <- data %>% 
+    ggplot(aes(x = x, y = y)) +
+    geom_point(aes(color = dmu), size = 3) +
+    geom_abline(intercept = 0, slope = frontier_slope, size = 1, alpha = 0.7, linetype = 5)  +
+    geom_text_repel(aes(label = glue("{str_replace(dmu, '_', ' ')}\nTE = {round(TE, 2)}"))) +
+    # adjust the scale of the chart
+    scale_y_continuous(limits = c(min(data$y)-0.2*(max(data$y)), max(data$y)+0.2*(max(data$y)))) +
+    scale_x_continuous(limits = c(min(data$x)-0.2*(max(data$x)), max(data$x)+0.2*(max(data$x)))) +
+    theme(legend.position = "none") +
+    labs(title = glue("Frontier with {str_replace_all(sch, '_', ' ')}"),
+         y = "Output index",
+         x = "Input index")
+  
+  return(plot)
+}
+```
+
+Run the function for each scheme. This time we will use the `map()` base function, not `map_dfr()` because the base function will automatically store all plots in a list. We don't need to specify creating a data frame for iterating the plotting function.
+
+``` {r vis C }
+
+# list schemes
+schemes_list <- unique(all_scores$scheme)
+
+# run function 
+frontier_plots <- map(schemes_list, plot_frontiers, all_scores)
+
+# name the plots according to their scheme
+names(frontier_plots) <- schemes_list
+```
+
+Now let's check out the results for Org C.
+
+``` {r view c}
+frontier_plots$Org_C_scheme
+```
+Let's quickly interpret results. Recall from the operating model visualisation above, Org C's value weighting scheme only considers 'participants' / 'workshops' for it's productivity ratio. Each of Organisation A, B and C ran 20 workshops, so their level of input is identical. However, from those 20 workshops, Org C had the most participants. The other organisations did not excel with respect to only those two performance indicators, so they are shown to have both higher input and lower output. 
+
+Now check out the frontier plot for Org D
+```{r org D scheme}
+frontier_plots$Org_D_scheme
+```
+
+Organisation D's ideal productivity portrayal considers only 'Certifications' / `Square feet'. While Org E and F awarded more certifications, they did so with much larger training facalities, i.e. less effective space utilisation. The other organisations did not perform well against these indicators and so find themselves on the opposite end of the spectrum.
+
+
+What if we wanted a more balanced perspective on performance? What might top performance look like under different conditions?  There are two other organisations in the field that, when assessed on their own ideal criteria, they also outperformed everyone else. As the evaluator, we should use the opportunity to refer to the funder's priorities. Let's say the funder is predeominantly concerned about the number of certificates awarded. That is, they want as many qualified individuals completing the traiings as possible. Further, they aren't interested in judging the organisations based on their fixed costs. They don't see the type or size of the facility as a significant performance factor. They recognise that staff salaries and workshop delivery represent the most significant direct expenditures. Under these circumstances, a quick look back at the operational models tells us that Org B's scheme most closely represents the funder's values. And if we plot all organisations with respect to Org B's weighting scheme, we get yet another, very different performance portrayal. 
+
+
+```{r vis B, echo=FALSE}
+frontier_plots$Org_B_scheme
+```
+
+Under Org B's scheme, no single organisation or group of organisations is too far ahead or too far behind. Instead, what we see is that when compared to Org B's achievements, most other organisations are running at about 90% efficiency. Under this set of performance criteria, one concusion the funder might make is that scaling up operations is a difficult task. Other organisations have spent more on inputs and have even awared more cirtificates, but they have done so less efficiently and effectively. If we are satisfied with this portrayal, then a clear next step would be to make a case study out of Org B and see how they have achieved this level of performance on the ground..
+
+
+## What happens when no DEA scheme represents our values?
+
+It's possible that the DEA algorithm produces results, none of which reflect what we trying to acheive. That is, when you examine how the DEA value weights emphasise individual variables in the productivity calculation, none of those value weighting schemes seem to align with our strategic objectives. The implication is that if you procede with the analysis and end up chosing one or two of these schemes to plot a frontier, that frontier will not be accurate, and the relative organisation performance portrayals won't be appropriate.
+
+
+There are a few directions we could go from here. First we may just decide that defining a frontier and using it as a reference to judge relative performance is just not the way to go. This doesn't mean, however that the results that have gotten us to this point are not valuable. Not only do the DEA value weights highlight where each individual organisation is excelling, the variables the algorithm did not emaphsise for each organisation represent areas where they are not performing as well as their peers. The weighting schemes alone serve as strong anchor points for further investigation. They immediately raise questions about why and how about the data. 
+
+
+Second we could define a customised value weighting scheme based totally on judgement or define a range of acceptable weights, much as we did in Chapter 5. We'll look at an example of how this can be done for absolute productivity measures in Chapter 8. It will build from the TI techniques we've already covered.
+
+Third, we can tweak the DEA algorithm. For example, let's say we're put off that the DEA algorithm was so selective in the variables it chose to emaphsise for each organisation, and we really want to make sure that we define optimal performance such that all performance variables are taken into account at least to some extent. What we can do here is set some minium acceptable value for each variable. We have to be careful about how we do this, however. The raw DEA value weights are not very intuitive, but we can look back at our first dea results to find a place to start. 
+
+```{r look back results, echo=FALSE}
+dea_base_results %>% 
+  mutate(value = round(value, 3)) %>% 
+  spread(key = "dmu", value = "value") %>% 
+  kable()
+```
+
+We can see that under no restrictions, the DEA algorithm gave several different variables a value wieght of 0.001. In our first attempt, we wouldn't want set our minimum value above this weight because it could make the linear program unsolvable. So, let's rerun the algorithm with a minimum weight of 0.001, so each variable is accounted for to least some meaningful extent. 
+
+```{r get new results}
+# list dmus
+dmu_indicies <- 1:nrow(dea_data_01)
+
+# map function for all dmus
+dea_new_results <- map_dfr(dmu_indicies, optimise_dmu_output, 
+                           df = dea_data_01,
+                           min_weight = 0.001)
+
+# organise and combine with org data
+results_weights_new <- dea_new_results %>% 
+  filter(variable != "Optimal Efficiency") %>% 
+  mutate(variable = str_remove(variable, "Weight "),
+         dmu = as.character(dmu)) %>% 
+  rename(opt_weight = value) %>% 
+  arrange(dmu, variable)
+
+dea_all_data_new <- dea_data_long %>% 
+  left_join(results_weights_new) %>% 
+  separate(variable, c("type", "variable"), sep = "_")
+
+# see the new weight emphasis
+weight_emphasis_new <- dea_all_data_new %>% 
+  group_by(dmu, type) %>% 
+  mutate(emphasis = opt_weight/sum(opt_weight)) %>% 
+  ungroup() %>% 
+  select(-opt_weight, -value)
+
+# Examine new op models
+plot_emphasis(weight_emphasis_new)
+```
+
+When all variables must be taken into account to optimise each organisation's performance portrayal, we get much less variability in what the ideal operational model looks like. With only some minor variations, the algorithm has determined that each input variable is of equal importance. The output weights, however, still get very different treatments depending on what we want performance to look like. Let's say we definitely want to emphasise the awarding of certificates more than just attracting participants. This narrows our choices down to Org A, Org D and Org E's models. We also would like to give the organisations as much flexibility with staffing as possible, so we like the fact that Org E's model emphasises the staff input slightly less than the others. In this case, let's check out what productivity looks like under this scheme.
+
+
+```{r new froniers}
+# get all scores for all weighting schemes
+all_scores_new <- map_dfr(dmu_names, alt_scores, dea_all_data_new)
+
+# plot all frontiers
+frontier_plots_new <- map(schemes_list, plot_frontiers, all_scores_new)
+names(frontier_plots_new) <- schemes_list
+
+# check out Org D's new frontier plot
+frontier_plots_new$Org_E_scheme
+```
+
+We've still got two clear groups, aligning with what we'd expect from the information provided about these organisations in the introduction section, where their quarterly reports indicated that they took different strategic directions. The performance portrayals are more forgiving, however, than when we chose Org D's scheme in the first DEA iteration above when only two performance indicators were taken into account. 
+
+# Reflections on DEA in practice
+
+When taking more performance criteria into account and when adding contextual priorities into the equation, the DEA algorithm can      

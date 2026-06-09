@@ -1,0 +1,191 @@
+---
+title: "Principal Componenet Analysis"
+author: "Kenneth Moore"
+date: "15/06/2021"
+output: 
+  html_document:
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+    number_sections: true  ## if you want number sections at each table header
+    toc_float: true
+    theme: united  # many options for theme, this one is my favorite.
+    highlight: tango  # specifies the syntax highlighting style
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = FALSE, eval = TRUE)
+library(tidyverse)
+library(plotly)
+library(factoextra)
+library(FactoMineR)
+library(corrplot)
+```
+
+**Required packages** 
+```{r packages, eval=FALSE}
+library(tidyverse)
+library(plotly)
+library(factoextra)
+library(FactoMineR)
+library(corrplot)
+```
+
+
+# Why is PCA useful?
+<!--  ================================================================================================== -->
+  
+Complex, multi-variate data sets can leave us scratching our heads about where to begin an investigation. Which variables are related? Which relationships are key? How to visualize and communicate insights in a simple way? 
+
+
+One possible answer is to proceed with **dimensionality reduction (DR)** on your set of data. Principal component analysis (PCA) is a common DR method for continuous variables. So what is PCA? To answer that, we need to build a **conceptual understanding** of what PCA does to a set of data.
+
+# What does PCA do?
+
+
+First, let's begin with some data. 
+A quick look at some indicative multi-dimensional data will help show the power and relevance of DR and PCA.
+
+```{r set seed, include=FALSE}
+set.seed(99)
+```
+
+```{r mock data}
+mock_data <- tibble(point   = c("P1", "P2", "P3", "P4", "P5", 'P6', "P7", "P8", "P9", "P10", 
+                                "P11", "P12", "P13", "P14", "P15"),
+                    var_1   = ceiling(runif(15, 0, 10)),
+                    var_2   = ceiling(runif(15, 0, 10)),
+                    var_3   = var_1 + var_2) %>% 
+  column_to_rownames(var = "point")
+head(mock_data)
+```
+
+
+## Plot the data
+The nature of this data indicates why and when DR can be so powerful. Click and drag on the plot below to explore different perspectives. What do you notice about the shape of the data?
+```{r clean mock data}
+plot_ly(mock_data, x = ~var_1, y = ~var_2, z = ~var_3, 
+        type = "scatter3d", 
+        mode = "markers", 
+        text = row.names(mock_data),
+        hoverinfo = "text") 
+```
+
+## Run PCA
+The data above exist along a 2-D plane in 3-D space. So, a 2-D representation of the points should suffice in capturing all the information contained in the data set. That's where PCA comes in. PCA can project these points onto a 2-D plane and while maximizing the amount of variation preserved in the data set. 
+
+After you run the code below, play around with the orientation of the 3-D visual, and see if you can orient the 3-D plot to resemble the 2-D plot produced by PCA. In doing so, you can see how PCA projects the points onto the new space, while dropping an entire dimension. 
+```{r run pca on mock data}
+mock_pca <- PCA(mock_data, scale.unit = F, graph = F)
+fviz_pca_ind(mock_pca, repel = T)
+```
+
+# Let's gain some realworld insight.
+
+Create some indicative university operational/perforamnce data.
+```{r set up uni data}
+uni_data <- tibble(institution        = c("Uni A", "Uni B", "Uni C", "Uni D", "Uni E", "Uni F"),
+                   group              = c("G2", "G2", "G1", "G2", "G1", "G1"),
+                   year               = c("2015", "2015", "2015", "2015", "2015", "2015"),
+                   academic_staff     = c(1000, 2000,  1500, 500,  3000,  2000),
+                   non_academic_staff = c(750,  2250,  1500, 750,  2600,  2100),
+                   ug_completions     = c(3000, 6200,  4400, 1600, 8900,  5000),
+                   research_pubs      = c(1750, 1500,  2050, 1200, 3050,  2800),
+                   cap_ex             = c(2000000, 1000000, 5000000, 250000, 4000000, 3000000),
+                   attrition_rate     = c(0.2, 0.12, 0.15, 0.25, 0.1, .13))
+```
+
+## Clean up for PCA
+
+The PCA package we're using takes data frames with row names because the input data must only be continuous variables.  
+```{r clean uni data}
+pca_data <- uni_data %>% 
+  column_to_rownames(var = "institution") %>% # set the institution variable to row names
+  select(-c(year, group)) # select only continuous variables
+```
+
+## Run PCA and check eigen values
+'Eigen values' emerge as a result of running PCA on the data and creating new dimensions. We won't get into the linear algebra, but the eigen values represent the percentage of variance in the data captured by each new dimension. 
+
+```{r check eigen values}
+uni_pca <- PCA(pca_data, scale.unit = T, graph = F)
+eig_val <- get_eigenvalue(uni_pca)
+print(eig_val)
+```
+
+## Generate scree plot
+A 'scree plot' is a bar chart of the new dimensions and their corresponding eigen values. This plot tells you how much information you retain (or lose) when reducing your data to fewer dimensions.
+
+```{r generate scree plot}
+fviz_eig(uni_pca, addlabels = T, ylim = c(0, 100))
+```
+
+In this example we can reduce the data to only two dimensions (Dim1 and Dim2) and still retain over 90% of the information contained in the data set. You can see that the PCA algorithm does produce additional dimensions for expressing the data, but the first two are enough to capture nearly the full story behind our data. 
+
+# Plot and interpret PCA results 
+But what actually do these new dimensions mean? It's helpful to plot the new PCA dimensions with the original variables also projected onto the new space. This will help indicate: 
+
+1. how the new dimensions comprise the original variables, 
+2. how the original variables are related to one another, and 
+3. the extent to which the original variables are captured in the new space. 
+
+So let's plot and interpret. 
+
+```{r plot uni PCA}
+fviz_pca_var(uni_pca, col.var = "black", repel = T)
+```
+
+## Understand the new dimensions
+
+The plot above shows the directions and magnitudes of the original variables when projected onto the new space defined by principal components, Dim 1 and Dim 2. Following the ordered list above, let's interpret the plot. 
+
+1. The more parallel an original variable vector is to a principal component, the more that principal component incorporates the variation in that original vector. For example, movement in `attrition_rate` is captured thoroughly by Dim 1, where `attrition_rate` is more positive as Dim 1 becomes more negative. Alternatively,  movement in `cap_ex` is captured almost equally by both Dim 1 and Dim 2, where as Dim 1 and Dim 2 become more positive, `cap_ex` also becomes more positive.
+2. The more parallel the variable vectors are to one another, the more correlated are the original variables those vectors represent. For example, `academic_staff` and `ug_completions` are positively correlated, whereas `academic_staff` and `attrition_rate` are negatively correlated. `cap_ex` and `non_academic_staff` show almost no correlation to one another.
+3. The greater the magnitude of a variable vector, the more the variation of that original variable is captured in the two dimensional plot. For example, `academic_staff` extends all the way to the outside circle, meaning the variation is that variable is captured totally in our new space. `research_pubs` though is not fully capture in the space, meaning that some information about his variable has been lost in this new projection.
+
+
+If you're curious about how **exactly** the new PCA dimensions comprise the original data, you can check. Let's visualise the results.  
+
+```{r examine cos2}
+var <- get_pca_var(uni_pca) #this stores all key outputs created in the pca analysis
+
+var$cos2 #the cos2 output variable indicates the 'quality' of the new dimensions in representing the initial variables 
+
+corrplot(var$cos2, is.corr = FALSE)
+```
+
+Based on the information above, we can see that about 15% of the variation in `research_pubs` is actually captured by Dim 3, which has not been plotted. But because Dim 3 captures such a small amount of information overall -- relatively speaking in relation to the first two dimensions -- interrogating that dimension further or creating an alternative plot using that dimension is not really necessary.  
+
+# Explore plot options
+
+Now let's look at how we can further visualize PCA results.
+
+## Plot individuals.
+```{r plot ind}
+fviz_pca_ind(uni_pca, repel = TRUE )
+```
+
+## Explore clusters
+
+A great default option of this PCA package is that when you have a grouping variable, it automatically locates the centroid of each group. Cluster analysis is a natural complement to PCA because multi-dimensional clusters become much more apparent when plotted against your principal components. The confidence ellipses below can be thought of as indicating the certainty about whether individuals truly belong in the specified group. Whether through grouping variables or full cluster anlayses, you can begin to predict key characteristics about individual observations. 
+
+```{r plot ind options}
+fviz_pca_ind(uni_pca, 
+             col.ind = uni_data$group,
+             addEllipses = T,
+             ellipse.type = "confidence",
+             ellipse.level = 0.95,
+             repel = TRUE )
+```
+
+## Plot the individuals with the variables
+
+```{r biplot}
+fviz_pca_biplot(uni_pca, 
+             col.ind = uni_data$group,
+             addEllipses = T,
+             ellipse.type = "confidence",
+             ellipse.level = 0.95,
+             col.var = "black",
+             repel = TRUE )
+```

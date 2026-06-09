@@ -19,3 +19,5 @@ These tutorials derive from the [Road Maps](https://ocw.mit.edu/courses/sloan-sc
 | [S-Shaped Growth — SIS Epidemic](tut-06-epidemic-sis.qmd) | Two-stock epidemic structure; product-driven nonlinearity |
 | [Sustained Oscillation — The Pendulum](tut-07-oscillation-pendulum.qmd) | Two-stock cross-coupled structure; RK4 integration |
 | [Damped Oscillations — The Real Pendulum](tut-08-damped-oscillations.qmd) | Friction as a structural factor; amplitude decay; phase portrait spiral |
+| [Reading the Shape — Part 1](tut-09-reading-the-shape-pt1.qmd) | S-shaped organisational data; linear vs logistic model fit; reading structure from curve shape |
+| [Reading the Shape — Part 2](tut-09-reading-the-shape-pt2.qmd) | SD model from logistic parameters; decomposed flows; policy levers; scenario analysis |

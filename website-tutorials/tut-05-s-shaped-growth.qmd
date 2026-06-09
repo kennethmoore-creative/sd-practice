@@ -103,7 +103,7 @@ ggplot() +
   annotate("segment", x = 1.2, xend = 3.85, y = births_valve_y, yend = births_valve_y,
            linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
   annotate("point", x = births_valve_x, y = births_valve_y, size = 5, colour = "#4e8cd4") +
-  annotate("text", x = births_valve_x, y = 4.38, label = "births",
+  annotate("text", x = births_valve_x, y = 4.38, label = "birthing",
            size = 3.2, colour = "#4e8cd4") +
   # Stock
   annotate("rect", xmin = 3.85, xmax = 7.15, ymin = 3.45, ymax = 4.55,
@@ -116,7 +116,7 @@ ggplot() +
   annotate("segment", x = 7.15, xend = 9.8, y = deaths_valve_y, yend = deaths_valve_y,
            linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
   annotate("point", x = deaths_valve_x, y = deaths_valve_y, size = 5, colour = "#d45b4e") +
-  annotate("text", x = deaths_valve_x, y = 4.38, label = "deaths",
+  annotate("text", x = deaths_valve_x, y = 4.38, label = "dying",
            size = 3.2, colour = "#d45b4e") +
   # Sink cloud
   geom_polygon(data = make_cloud(10.25, deaths_valve_y), aes(x, y),
@@ -134,7 +134,7 @@ ggplot() +
 
   # Parameters (plain text)
   annotate("text", x = 1.5, y = 2.6,  label = "births\nnormal",     size = 3.0) +
-  annotate("text", x = 9.1, y = 2.6,  label = "average\nlifetime",  size = 3.0) +
+  annotate("text", x = 10.1, y = 2.6,  label = "baseline average\nlifetime",  size = 3.0) +
   annotate("text", x = 2.9, y = 2.15, label = "area",               size = 3.0) +
   annotate("text", x = 2.9, y = 1.3,  label = "normal pop\ndensity", size = 3.0) +
 
@@ -158,17 +158,26 @@ ggplot() +
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
-  # Info: deaths multiplier → deaths valve (B1 balancing loop)
+  # Auxiliary: effective lifetime (bold — calculated value)
+  annotate("text", x = 8.2, y = 1.5, label = "effective\nlifetime",
+           size = 3.0, fontface = "bold") +
+  # Info: deaths multiplier → effective lifetime
   geom_curve(
-    data = data.frame(x = 6.3, y = 0.95, xend = deaths_valve_x, yend = deaths_valve_y - 0.12),
+    data = data.frame(x = 6.3, y = 0.95, xend = 7.6, yend = 1.35),
     aes(x = x, y = y, xend = xend, yend = yend),
-    curvature = 0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
   # Info: stock → births valve (R1 reinforcing loop)
   geom_curve(
-    data = data.frame(x = 4.5, y = 3.45, xend = 2.1, yend = births_valve_y - 0.12),
+    data = data.frame(x = 4.5, y = 3.45, xend = births_valve_x + 0.1, yend = births_valve_y - 0.12),
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = -0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → dying valve (B1 balancing loop)
+  geom_curve(
+    data = data.frame(x = 6.5, y = 3.45, xend = deaths_valve_x - 0.1, yend = deaths_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
   # Info: births normal → births valve
   geom_curve(
@@ -176,17 +185,23 @@ ggplot() +
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = -0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
-  # Info: average lifetime → deaths valve
+  # Info: baseline average lifetime → effective lifetime
   geom_curve(
-    data = data.frame(x = 8.8, y = 2.6, xend = deaths_valve_x + 0.1, yend = deaths_valve_y - 0.12),
+    data = data.frame(x = 10.1, y = 2.42, xend = 8.6, yend = 1.5),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: effective lifetime → dying valve
+  geom_curve(
+    data = data.frame(x = 8.5, xend = 8.55, y = 1.65, yend = deaths_valve_y - 0.12),
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
-
+  
   # Loop labels
   annotate("text", x = 2.7, y = 2.9, label = "R1  (+)", size = 3.8,
            colour = "#27ae60", fontface = "bold") +
-  annotate("text", x = 9.3, y = 2.1, label = "B1  (−)", size = 3.8,
+  annotate("text", x = 7.3, y = 2.1, label = "B1  (−)", size = 3.8,
            colour = "#c0392b", fontface = "bold") +
   theme_void() +
   coord_cartesian(xlim = c(0, 11), ylim = c(0.3, 5.1)) +
@@ -215,7 +230,7 @@ deaths_mult_fn <- approxfun(deaths_mult_x, deaths_mult_y, rule = 2)
 
 params_s1 <- c(
   p_births_normal      = 1.5,   # 1/year
-  p_average_lifetime   = 4,     # years
+  p_baseline_average_lifetime   = 4,     # years
   p_area               = 1,     # acres
   p_normal_pop_density = 100    # rabbits/acre (normalisation reference)
 )
@@ -230,15 +245,16 @@ model_s1 <- function(time, stocks, params) {
     c_population_density <- s_rabbit_population / p_area
     c_normalized_density <- c_population_density / p_normal_pop_density
     c_deaths_multiplier  <- deaths_mult_fn(c_normalized_density)
+    c_effective_lifetime <- p_baseline_average_lifetime / c_deaths_multiplier
 
     f_birthing <- s_rabbit_population * p_births_normal
-    f_dying <- (s_rabbit_population / p_average_lifetime) * c_deaths_multiplier
+    f_dying <- s_rabbit_population / c_effective_lifetime
 
     ds_dt <- f_birthing - f_dying
 
     return(list(c(ds_dt),
-                births            = f_birthing,
-                deaths            = f_dying,
+                birthing          = f_birthing,
+                dying             = f_dying,
                 normalized_density = c_normalized_density,
                 deaths_multiplier  = c_deaths_multiplier))
   })
@@ -276,11 +292,11 @@ The model works well, but it is worth pausing on what the deaths multiplier actu
 
 The two feedback loops in this structure are:
 
-**Positive loop (R1) — Births:**
-$$\text{rabbit population} \xrightarrow{+} \text{births} \xrightarrow{+} \text{rabbit population}$$
+**Positive loop (R1) — Birthing:**
+$$\text{rabbit population} \xrightarrow{+} \text{birthing} \xrightarrow{+} \text{rabbit population}$$
 
-**Negative loop (B1) — Density-Dependent Deaths:**
-$$\text{rabbit population} \xrightarrow{+} \text{density} \xrightarrow{+} \text{deaths multiplier} \xrightarrow{+} \text{deaths} \xrightarrow{-} \text{rabbit population}$$
+**Negative loop (B1) — Density-Dependent Dying:**
+$$\text{rabbit population} \xrightarrow{+} \text{density} \xrightarrow{+} \text{deaths multiplier} \xrightarrow{-} \text{effective lifetime} \xrightarrow{-} \text{dying} \xrightarrow{-} \text{rabbit population}$$
 
 The deaths multiplier values — 1 at low density, 6 at the carrying capacity, 25 at extreme density — came from empirical observation documented in D-4432-2. They capture the *consequence* of overcrowding accurately, but they say nothing about the *mechanism*. Why does a rabbit die 6 times faster at 9× normal density than at 1× normal density?
 
@@ -298,7 +314,7 @@ The empirical lookup in Structure 1 told us something important, even if it did 
 
 You do not need the research data to model this. You only need to understand what the data was reflecting. Once we recognise that the deaths multiplier in Structure 1 was always a compressed representation of food scarcity, the negative feedback loop can be unpacked into an explicit causal chain:
 
-$$\text{rabbit population} \xrightarrow{+} \text{food demand} \xrightarrow{-} \text{food per rabbit} \xrightarrow{-} \text{effective lifetime} \xrightarrow{+} \text{deaths} \xrightarrow{-} \text{rabbit population}$$
+$$\text{rabbit population} \xrightarrow{+} \text{food demand} \xrightarrow{-} \text{food per rabbit} \xrightarrow{-} \text{effective lifetime} \xrightarrow{-} \text{dying} \xrightarrow{-} \text{rabbit population}$$
 
 Every arrow in this chain is mechanistic. No second stock is needed — the food constraint enters purely through the flow balance. The S-shape emerges entirely from this relationship, with no lookup table required.
 
@@ -335,7 +351,7 @@ ggplot() +
   annotate("segment", x = 1.2, xend = 3.85, y = births_valve_y, yend = births_valve_y,
            linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
   annotate("point", x = births_valve_x, y = births_valve_y, size = 5, colour = "#4e8cd4") +
-  annotate("text", x = births_valve_x, y = 4.38, label = "births",
+  annotate("text", x = births_valve_x, y = 4.38, label = "birthing",
            size = 3.2, colour = "#4e8cd4") +
   # Stock
   annotate("rect", xmin = 3.85, xmax = 7.15, ymin = 3.45, ymax = 4.55,
@@ -348,7 +364,7 @@ ggplot() +
   annotate("segment", x = 7.15, xend = 9.8, y = deaths_valve_y, yend = deaths_valve_y,
            linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
   annotate("point", x = deaths_valve_x, y = deaths_valve_y, size = 5, colour = "#d45b4e") +
-  annotate("text", x = deaths_valve_x, y = 4.38, label = "deaths",
+  annotate("text", x = deaths_valve_x, y = 4.38, label = "dying",
            size = 3.2, colour = "#d45b4e") +
   # Sink cloud
   geom_polygon(data = make_cloud(10.25, deaths_valve_y), aes(x, y),
@@ -362,7 +378,7 @@ ggplot() +
 
   # Parameters (plain text)
   annotate("text", x = 1.5, y = 2.6,  label = "births\nnormal",    size = 3.0) +
-  annotate("text", x = 9.1, y = 2.6,  label = "average\nlifetime", size = 3.0) +
+  annotate("text", x = 10, y = 2.6,  label = "baseline average\nlifetime", size = 3.0) +
   annotate("text", x = 2.9, y = 2.75, label = "food\nsupply",      size = 3.0) +
   annotate("text", x = 2.9, y = 1.85, label = "rabbit\nappetite",  size = 3.0) +
 
@@ -384,17 +400,26 @@ ggplot() +
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
-  # Info: normalized nutrition → deaths valve (B1 balancing loop)
+  # Auxiliary: effective lifetime (bold — calculated value)
+  annotate("text", x = 8.2, y = 1.85, label = "effective\nlifetime",
+           size = 3.0, fontface = "bold") +
+  # Info: normalized nutrition → effective lifetime
   geom_curve(
-    data = data.frame(x = 6.3, y = 1.85, xend = deaths_valve_x, yend = deaths_valve_y - 0.12),
+    data = data.frame(x = 6.3, y = 1.85, xend = 7.6, yend = 1.85),
     aes(x = x, y = y, xend = xend, yend = yend),
-    curvature = 0.25, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
   # Info: stock → births valve (R1 reinforcing loop)
   geom_curve(
-    data = data.frame(x = 4.5, y = 3.45, xend = 2.1, yend = births_valve_y - 0.12),
+    data = data.frame(x = 4.5, y = 3.45, xend = births_valve_x + 0.1, yend = births_valve_y - 0.12),
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = -0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → dying valve (B1 balancing loop)
+  geom_curve(
+    data = data.frame(x = 6.5, y = 3.45, xend = deaths_valve_x - 0.1, yend = deaths_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
   # Info: births normal → births valve
   geom_curve(
@@ -402,17 +427,23 @@ ggplot() +
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = -0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
-  # Info: average lifetime → deaths valve
+  # Info: baseline average lifetime → effective lifetime
   geom_curve(
-    data = data.frame(x = 8.8, y = 2.6, xend = deaths_valve_x + 0.1, yend = deaths_valve_y - 0.12),
+    data = data.frame(x = 10, y = 2.4, xend = 8.6, yend = 1.9),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: effective lifetime → dying valve
+  geom_curve(
+    data = data.frame(x = 8.6, xend = 8.55, y = 2.05, yend = deaths_valve_y - 0.12),
     aes(x = x, y = y, xend = xend, yend = yend),
     curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
   ) +
-
+  
   # Loop labels
-  annotate("text", x = 2.7, y = 2.9, label = "R1  (+)", size = 3.8,
+  annotate("text", x = 2.7, y = 3.3, label = "R1  (+)", size = 3.8,
            colour = "#27ae60", fontface = "bold") +
-  annotate("text", x = 9.3, y = 2.1, label = "B1  (−)", size = 3.8,
+  annotate("text", x = 7, y = 2.6, label = "B1  (−)", size = 3.8,
            colour = "#c0392b", fontface = "bold") +
   theme_void() +
   coord_cartesian(xlim = c(0, 11), ylim = c(0.5, 5.1)) +
@@ -422,7 +453,7 @@ ggplot() +
 ```{r s2-params}
 params_s2 <- c(
   p_births_normal    = 1.5,    # 1/year
-  p_average_lifetime = 4,      # years (baseline, when food is adequate)
+  p_baseline_average_lifetime = 4,      # years (baseline, when food is adequate)
   p_replenishment    = 1530,   # kg carrot/year (annual food supply)
   p_rabbit_appetite  = 10      # kg/rabbit/year
 )
@@ -430,9 +461,10 @@ params_s2 <- c(
 
 ## Deaths Without a Lookup Table
 
-Rather than a lookup function, deaths are driven by a single mechanistic equation:
+Rather than a lookup function, deaths are driven by a modeled process and mechanistic equation:
 
-$$f\_deaths = \frac{\text{population}}{\text{p\_average\_lifetime} \times \min(\text{normalised nutrition},\ 1)}$$
+$$c\_\text{effective lifetime} = \text{baseline average lifetime} \times \min(\text{normalised nutrition},\ 1)$$
+$$f\_\text{dying} = \frac{\text{population}}{c\_\text{effective lifetime}}$$
 
 When food is at or above each rabbit's normal ration, the effective lifetime equals the baseline — the multiplier is 1. When food per rabbit falls below the ration, the effective lifetime shortens proportionally, and deaths increase.
 
@@ -443,27 +475,28 @@ The food sub-model needs just two parameters, and neither is empirical:
 - **`p_replenishment`** — the annual food supply (kg/year), treated as constant. Carrots grow fresh each year and are fully available; what does not get eaten does not persist. This represents the meadow's renewable capacity.
 - **`p_rabbit_appetite`** — how many kg of carrots each rabbit needs per year at baseline health
 
-Together they define the threshold at which food stress begins: `p_replenishment / p_rabbit_appetite = 153` is the population at which per-rabbit supply exactly meets appetite. Above 153, nutrition falls below 1 and the B1 loop tightens. The carrying capacity falls at `p_births_normal × p_average_lifetime × 153 = 6 × 153 ≈ 918` — the population where deaths balance births.
+Together they define the threshold at which food stress begins: `p_replenishment / p_rabbit_appetite = 153` is the population at which per-rabbit supply exactly meets appetite. Above 153, nutrition falls below 1 and the B1 loop tightens. The carrying capacity falls at `p_births_normal × p_baseline_average_lifetime × 153 = 6 × 153 ≈ 918` — the population where deaths balance births.
 
 ```{r s2-model}
 model_s2 <- function(time, stocks, params) {
   with(as.list(c(stocks, params)), {
 
     # food balance: can supply keep up with demand?
-    f_consuming        <- s_rabbit_population * p_rabbit_appetite
+    f_consuming            <- s_rabbit_population * p_rabbit_appetite
     c_food_per_rabbit      <- p_replenishment / max(s_rabbit_population, 0.001)
     c_normalized_nutrition <- min(c_food_per_rabbit / p_rabbit_appetite, 1)
+    c_effective_lifetime   <- p_baseline_average_lifetime * c_normalized_nutrition
 
     # rabbit flows — effective lifetime shortens proportionally with food scarcity
     f_birthing <- s_rabbit_population * p_births_normal
-    f_dying <- s_rabbit_population / (p_average_lifetime * c_normalized_nutrition)
+    f_dying <- s_rabbit_population / c_effective_lifetime
 
     ds_dt <- f_birthing - f_dying
 
     return(list(
       c(ds_dt),
-      births               = f_birthing,
-      deaths               = f_dying,
+      birthing             = f_birthing,
+      dying                = f_dying,
       carrots_eaten        = f_consuming,
       normalized_nutrition = c_normalized_nutrition,
       nutritional_stress   = 1 / c_normalized_nutrition
@@ -500,7 +533,7 @@ Three panels tell the food story behind the curve:
 
 - **`carrots_eaten`** — food demand grows proportionally with population, rising steadily toward 9,180 kg/year at equilibrium. This is the mechanistic driver of scarcity: a fixed supply shared among a growing population.
 - **`normalized_nutrition`** — starts at 1 (food is plentiful per rabbit) and falls steadily as population grows. At equilibrium it reaches **1/6** — the exact level at which deaths balance births.
-- **`nutritional_stress`** — the inverse of normalized nutrition, and the emergent analogue of Structure 1's `deaths_multiplier`. Both reach approximately **6** at equilibrium, for the same algebraic reason: birth rate × average lifetime = 1.5 × 4 = 6. The lookup table and the food balance encode the same constraint — one empirically, one mechanistically.
+- **`nutritional_stress`** — the inverse of normalized nutrition, and the emergent analogue of Structure 1's `deaths_multiplier`. Both reach approximately **6** at equilibrium, for the same algebraic reason: birth rate × baseline average lifetime = 1.5 × 4 = 6. The lookup table and the food balance encode the same constraint — one empirically, one mechanistically.
 
 ---
 
@@ -509,10 +542,10 @@ Three panels tell the food story behind the curve:
 Placing the two negative loops side by side makes the relationship clear.
 
 **Structure 1 — negative loop (B1):**
-$$\text{population} \to \text{density} \to \underbrace{\text{deaths multiplier}}_{\text{empirical lookup}} \to \text{deaths} \to \text{population}$$
+$$\text{population} \to \text{density} \to \underbrace{\text{deaths multiplier} \to \text{effective lifetime}}_{\text{empirical lookup}} \to \text{dying} \to \text{population}$$
 
 **Structure 2 — negative loop (B1, unpacked):**
-$$\text{population} \to \underbrace{\text{food demand} \to \text{food per rabbit} \to \text{effective lifetime}}_{\text{mechanistic food balance}} \to \text{deaths} \to \text{population}$$
+$$\text{population} \to \underbrace{\text{food demand} \to \text{food per rabbit} \to \text{effective lifetime}}_{\text{mechanistic food balance}} \to \text{dying} \to \text{population}$$
 
 Structure 1's deaths multiplier is, in effect, a compressed summary of Structure 2's food balance. The D-4432-2 researchers measured what happens to rabbit mortality as density increases; Structure 2 explains *why* it happens. The lookup table was always a proxy for food scarcity — Structure 2 simply makes that explicit.
 

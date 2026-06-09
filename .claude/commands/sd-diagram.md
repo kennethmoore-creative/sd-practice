@@ -86,11 +86,23 @@ geom_curve(data=data.frame(x=_, y=_, xend=_, yend=_),
            aes(x=x, y=y, xend=xend, yend=yend),
            curvature=+/-0.3, colour="grey40", linewidth=0.5, arrow=info_arrow)
 
+# IMPORTANT — arrows must not criss-cross at a valve:
+# Each arrow must START and END on the same side of the valve.
+# • An arrow coming from the LEFT  → xend = valve_x - 0.1
+# • An arrow coming from the RIGHT → xend = valve_x + 0.1
+# Mixing sides (starting right, ending left) causes arrows to cross each other.
+
 # IMPORTANT — never draw an arrow through text:
 # Stop the arrowhead at the near edge of any label it would otherwise cross.
 # • Arrow arriving from ABOVE a flow label (label_y ≈ 3.65):  yend ~ label_y + 0.25
 # • Arrow arriving from BELOW a flow label (label_y ≈ 2.38):  yend ~ label_y - 0.20
 # Apply the same logic for any other text the arrow path crosses.
+
+# IMPORTANT — prefer geom_curve over annotate("segment") for info links:
+# Use annotate("segment") ONLY when elements are stacked directly above/below
+# each other (e.g. a vertical auxiliary chain). Even near-vertical connectors
+# (e.g. an auxiliary node just below a valve) should use geom_curve — a slight
+# bow separates the arrowhead cleanly from the surrounding text.
 
 # Loop labels
 annotate("text", x=_, y=_, label="R1  (+)", size=3.8, colour="#27ae60", fontface="bold")
@@ -186,10 +198,19 @@ directly above each other and a curve cannot render cleanly here.
 
 | Label | Position | Link target | `geom_curve` curvature |
 |-------|----------|-------------|------------------------|
-| births normal    | `(1.5, 2.6)`  | births valve       | `–0.3` |
-| average lifetime | `(9.1, 2.6)`  | deaths valve       | `+0.3` |
-| area             | `(2.9, 2.15)` | population density | `–0.2` |
+| births normal    | `(1.5, 2.6)`   | births valve       | `–0.3` |
+| average lifetime | `(9.1, 2.6)`   | deaths valve       | `+0.3` |
+| area             | `(2.9, 2.15)`  | population density | `–0.2` |
 | normal pop density | `(2.9, 1.3)` | normalized density | `–0.2` |
+
+**Long parameter labels on the right side:** if the label text is wider than "average\nlifetime" (e.g. "baseline average\nlifetime"), push the x position to ≥ 10 to avoid crowding any auxiliary nodes in the x=7.5–9 zone. The info arrow origin moves with it.
+
+### Intermediate auxiliary nodes
+
+When the model inserts a calculated converter between a chain terminus and a valve (e.g. `effective lifetime` sitting between `deaths multiplier` and the dying valve), place the node at approximately `(8.2, y)` on the right side. Its two connectors:
+
+- **Chain → auxiliary**: `geom_curve`, curvature chosen to bow away from the centre
+- **Auxiliary → valve**: `geom_curve` (not `annotate("segment")`), slight curvature so the arrowhead arrives cleanly without passing through the valve label text
 
 ### Feedback arcs (loop-closing info links)
 
@@ -198,5 +219,9 @@ directly above each other and a curve cannot render cleanly here.
 
 ### Loop labels
 
+Default positions work when the diagram is uncluttered:
+
 - `R1  (+)` at `(2.7, 2.9)` — `colour="#27ae60"`, `fontface="bold"`, `size=3.8`
 - `B1  (−)` at `(9.3, 2.1)` — `colour="#c0392b"`, `fontface="bold"`, `size=3.8`
+
+**Crowding rule:** loop labels must sit in clear white space, not inside a node cluster. When auxiliary nodes or long parameter labels fill the right side (x > 7.5), move B1 leftward into open space (e.g. x ≈ 7–7.5) and adjust y so it does not overlap R1. Similarly, if R1's default position is near a shifted B1, move R1 upward (e.g. y ≈ 3.3).

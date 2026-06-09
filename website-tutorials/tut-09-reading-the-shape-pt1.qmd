@@ -1,0 +1,317 @@
+---
+title: "Tutorial 9: Reading the Shape — Part 1"
+subtitle: "Using system dynamics as part of a real data pipeline — from raw observations to structural insight"
+author: "Kenneth Moore"
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+---
+
+## System Dynamics in the Wild
+
+The tutorials up to this point have been built from the inside out: a known feedback structure, clearly defined parameters, a simulation that produces predictable outputs. This is the right way to learn the mechanics. But real analytical work runs in the opposite direction. You have data — a monthly HR export, a dashboard metric, a time series pulled from a government report — and the question is what structural process produced it.
+
+This is system dynamics in the wild. Working with it looks less like model-building and more like a standard data pipeline: load the data, explore it visually, fit a simple statistical model, notice what it misses, choose a better one, and only then ask what kind of feedback structure could generate the pattern you are seeing. The SD model comes toward the end of that pipeline, not the beginning — but when it fits, it pays off in a way that statistical models alone cannot: it names the feedback loops, connects parameters to real operational levers, and lets you run policy counterfactuals that a regression cannot.
+
+This tutorial and the next work through that pipeline from end to end. Part 1 (this tutorial) covers the data and curve-fitting stages: exploring the pattern, testing a linear model, recognising that a logistic curve fits better, and extracting parameters that carry structural meaning. Part 2 builds the system dynamics model seeded from those parameters, and tests what different management policies would have produced. Together they show how SD sits inside a broader analytical workflow — a tool you reach for when the shape of the data suggests feedback dynamics are at work.
+
+---
+
+## A Transition Is Coming
+
+A government agency is about to undergo significant structural change. New regulatory requirements have reshaped its mandate, and in response the agency must reorganise — shifting people between functions, retraining for new capability profiles, and making some redundancies unavoidable. Leadership is committed to managing the transition well: retaining good people, maintaining service quality, and avoiding the kind of prolonged disruption that can take years to recover from.
+
+Another agency — call it Agency A — went through something nearly identical three years prior. As part of their transition management, Agency A ran monthly workforce wellbeing monitoring over a 24-month period, beginning from when their restructuring was announced. One of the key metrics was the number of staff working at reduced capacity — a composite measure drawn from leave records, manager assessments, and voluntary self-reporting, and a reasonable proxy for organisational burnout.
+
+Our agency has been given access to that data. Before their own transition begins, leadership wants to understand what happened at Agency A — not just that burnout increased (a chart makes that obvious), but *what structural forces drove the pattern*, and what that reveals about managing things differently.
+
+This tutorial walks through the initial data analysis: exploring the data, fitting a linear model, recognising something more informative in the shape of the data, and fitting a logistic curve that begins to surface the system underneath.
+
+---
+
+## The Data
+
+```{r}
+#| label: data
+
+staff_burnout_data <- tribble(
+  ~date,          ~burnt_out_staff,
+  "2023-01-01",   11,
+  "2023-02-01",   12,
+  "2023-03-01",   17,
+  "2023-04-01",   13,
+  "2023-05-01",   19,
+  "2023-06-01",   21,
+  "2023-07-01",   24,
+  "2023-08-01",   39,
+  "2023-09-01",   35,
+  "2023-10-01",   49,
+  "2023-11-01",   57,
+  "2023-12-01",   59,
+  "2024-01-01",   63,
+  "2024-02-01",   61,
+  "2024-03-01",   59,
+  "2024-04-01",   66,
+  "2024-05-01",   70,
+  "2024-06-01",   65,
+  "2024-07-01",   69,
+  "2024-08-01",   67,
+  "2024-09-01",   71,
+  "2024-10-01",   72,
+  "2024-11-01",   68,
+  "2024-12-01",   70
+) |>
+  mutate(date = as.Date(date), t = row_number())
+
+staff_burnout_data
+```
+
+Each row is one month. `burnt_out_staff` is the head count of staff flagged as working at reduced capacity. `t` is the integer month index — the numeric time variable used for model fitting. Agency A set a target of keeping this count below 25 at all times.
+
+---
+
+## First Look: Plotting the Trend
+
+```{r}
+#| label: fig-raw-data
+#| fig-cap: "Monthly count of staff on reduced capacity at Agency A over a 24-month transition period. The dashed line marks the agency's target of fewer than 25 staff. The count breaches the target by mid-2023 and stabilises in 2024 at roughly three times the target level."
+#| fig-height: 4.0
+
+ggplot(staff_burnout_data, aes(x = date, y = burnt_out_staff)) +
+  geom_line(linewidth = 0.8, colour = "#619CFF") +
+  geom_point(size = 1.8, colour = "#619CFF") +
+  geom_hline(yintercept = 25, linetype = "dashed",
+             colour = "grey40", linewidth = 0.5) +
+  annotate("text", x = min(staff_burnout_data$date), y = 28,
+           label = "Target: < 25 staff", colour = "grey40",
+           size = 3, hjust = 0) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  labs(
+    title = "Staff on Reduced Capacity — Agency A Transition (2023–2024)",
+    x     = NULL,
+    y     = "Staff on reduced capacity (count)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+The data has clear phases. Burnout was relatively contained in the first months of the transition — roughly 10 to 24 staff — before accelerating sharply from around August 2023. By early 2024, the count had settled in the 60–72 range with no strong sign of further increase. The trajectory is not a steady climb; it has structure.
+
+---
+
+## A Linear Baseline
+
+The first instinct for any trend analysis is a linear model. Fitting a straight line gives a single summary of how fast burnout was growing on average, and tells us whether the trend is statistically meaningful.
+
+```{r}
+#| label: linear-model
+
+lm_fit  <- lm(burnt_out_staff ~ t, data = staff_burnout_data)
+r_sq_lm <- summary(lm_fit)$r.squared
+
+tibble(
+  metric = c("Slope (staff per month)", "R²"),
+  value  = c(round(coef(lm_fit)[["t"]], 2), round(r_sq_lm, 3))
+) |> print()
+```
+
+Let's plot this line over the data.
+
+```{r}
+#| label: fig-linear-fit
+#| echo: false
+#| fig-cap: "Linear model fitted to the burnout count. The model captures the overall trend but underfits the acceleration phase in mid-2023 and cannot represent the levelling off that follows."
+#| fig-height: 4.0
+
+lm_fitted_curve <- tibble(
+  date   = seq(min(staff_burnout_data$date), max(staff_burnout_data$date), length.out = 200),
+  fitted = predict(lm_fit,
+                   newdata = tibble(t = seq(1, max(staff_burnout_data$t), length.out = 200)))
+)
+
+ggplot() +
+  geom_line(data  = staff_burnout_data,
+            aes(x = date, y = burnt_out_staff),
+            linewidth = 0.6, colour = "#619CFF", alpha = 0.5) +
+  geom_point(data = staff_burnout_data,
+             aes(x = date, y = burnt_out_staff),
+             size = 1.5, colour = "#619CFF", alpha = 0.5) +
+  geom_line(data  = lm_fitted_curve,
+            aes(x = date, y = fitted),
+            linewidth = 1.2, colour = "#619CFF") +
+  geom_hline(yintercept = 25, linetype = "dashed",
+             colour = "grey40", linewidth = 0.5) +
+  annotate("text", x = min(staff_burnout_data$date), y = 28,
+           label = "Target: < 25 staff", colour = "grey40",
+           size = 3, hjust = 0) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  labs(
+    title    = "Staff Burnout — Linear Model Fit",
+    subtitle = paste0("R² = ", round(r_sq_lm, 3)),
+    x        = NULL,
+    y        = "Staff on reduced capacity (count)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+The R² confirms the trend is real: the rise in burnout over this period was not noise. And the linear model has a narrow use — it quantifies the average rate of increase, which in turn suggests what kind of intervention might slow the growth: faster onboarding of replacements, earlier access to occupational health support, or flexible working arrangements to reduce individual load.
+
+But the model has real limits. It assumes burnout will keep rising at the same rate indefinitely, which is not plausible. And it misses the phases in the data: the early months are overfit (the model predicts higher than observed), and the mid-period acceleration is underfit. The line is a blunt average across a trajectory that has distinct dynamics.
+
+---
+
+## Reconsidering the Shape
+
+Look at the data without the linear fit. The first few months show slow growth. From around mid-2023, growth accelerates sharply. From early 2024, it slows and plateaus around 65–70 staff. The trajectory traces an **S-shape**.
+
+That shape is not arbitrary. In system dynamics, S-shaped growth is the signature of two competing feedback processes:
+
+- A **reinforcing loop** that drives growth: as more staff burn out, the workload on the remaining team increases, raising stress and causing further burnout. Each person affected increases the burden on everyone else.
+- A **balancing loop** that eventually limits it: as burnout becomes visible and severe enough, management deploys support — contractors, reduced scope, flexible arrangements — helping staff recover and slowing the spread.
+
+In Agency A's case, the reinforcing loop dominated for the better part of a year before the balancing loop became strong enough to arrest the rise. The system settled at an equilibrium far above the target — not because the problem was unmanageable, but because the response came too late.
+
+This distinction matters for how we model the data. A linear model encodes the assumption that every unit of time adds the same increment to burnout. A logistic model encodes something more realistic: that growth is fastest when conditions are most fertile, then slows as constraints tighten. And it produces a parameter a linear model cannot: the **upper asymptote**, representing where the system is heading if nothing changes. That is a more actionable quantity than an average rate of change, because it describes the structural outcome the organisation needs to shift.
+
+---
+
+## Fitting a Logistic Curve
+
+Base R includes `nls()` for fitting non-linear models via least squares. Combined with the self-starting function `SSfpl()`, we can fit a **four-parameter logistic** with no manual guessing of starting values:
+
+$$y = A + \frac{B - A}{1 + \exp\!\left(\frac{x_{\text{mid}} - t}{\text{scal}}\right)}$$
+
+The four parameters each have a direct interpretation:
+
+| Parameter | Role | Plain language |
+|-----------|------|----------------|
+| `A` | Lower asymptote | The level the curve starts from (baseline burnout) |
+| `B` | Upper asymptote | The equilibrium the system is heading toward |
+| `xmid` | Inflection point | The month of fastest growth |
+| `scal` | Scale (inverse rate) | Controls steepness; growth rate is `r` = `1/scal` |
+
+```{r}
+#| label: nls-fit
+
+fit_nls <- nls(burnt_out_staff ~ SSfpl(t, A, B, xmid, scal), data = staff_burnout_data)
+
+coefs  <- coef(fit_nls)
+L_fit  <- coefs[["A"]]
+K_fit  <- coefs[["B"]]
+t0_fit <- coefs[["xmid"]]
+r_fit  <- 1 / coefs[["scal"]]
+
+tibble(
+  parameter = c("K — upper asymptote (equilibrium)", "L — lower asymptote (baseline)",
+                "r — growth rate", "t0 — inflection month"),
+  value     = c(round(K_fit, 1), round(L_fit, 1), round(r_fit, 3), round(t0_fit, 1))
+) |> print()
+```
+
+```{r}
+#| label: model-comparison-table
+
+r_sq_nls <- cor(staff_burnout_data$burnt_out_staff, fitted(fit_nls))^2
+
+tibble(
+  model     = c("Linear", "Logistic (nls)"),
+  r_squared = round(c(r_sq_lm, r_sq_nls), 3)
+) |> print()
+```
+
+The logistic model fits the data substantially better. But the more important gain is not the improvement in R² — it is the parameters themselves.
+
+---
+
+## Comparing the Models
+
+Now let's compare the logistic and linear model fits directly against the observed data.
+
+```{r}
+#| label: fig-model-comparison
+#| echo: false
+#| fig-cap: "Linear model (dotted red) and logistic model (solid blue) against the observed data (grey). The logistic curve follows both the acceleration phase and the plateau; the linear model misses both. The logistic parameters connect directly to the structure of the system."
+#| fig-height: 4.0
+
+t_fine       <- seq(1, max(staff_burnout_data$t), length.out = 200)
+fitted_curve <- tibble(
+  date   = seq(min(staff_burnout_data$date), max(staff_burnout_data$date), length.out = 200),
+  fitted = predict(fit_nls, newdata = tibble(t = t_fine))
+)
+
+ggplot() +
+  geom_line(data  = staff_burnout_data,
+            aes(x = date, y = burnt_out_staff),
+            linewidth = 0.6, colour = "grey55", alpha = 0.7) +
+  geom_point(data = staff_burnout_data,
+             aes(x = date, y = burnt_out_staff),
+             size = 1.5, colour = "grey55", alpha = 0.7) +
+  geom_line(data  = lm_fitted_curve,
+            aes(x = date, y = fitted, colour = "Linear"),
+            linewidth = 0.75, linetype = "dotted") +
+  geom_line(data  = fitted_curve,
+            aes(x = date, y = fitted, colour = "Logistic (nls)"),
+            linewidth = 1.2) +
+  geom_hline(yintercept = 25, linetype = "dashed",
+             colour = "grey40", linewidth = 0.5) +
+  annotate("text", x = min(staff_burnout_data$date), y = 28,
+           label = "Target: < 25 staff", colour = "grey40",
+           size = 3, hjust = 0) +
+  scale_colour_manual(values = c("Linear" = "#E74C3C", "Logistic (nls)" = "#619CFF")) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  labs(
+    title    = "Staff Burnout — Linear vs Logistic Fit",
+    subtitle = paste0("Linear R² = ", round(r_sq_lm, 3),
+                      "  |  Logistic R² = ", round(r_sq_nls, 3)),
+    x        = NULL,
+    y        = "Staff on reduced capacity (count)",
+    colour   = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x     = element_text(angle = 30, hjust = 1)
+  )
+```
+
+---
+
+## What the Parameters Tell Us
+
+This is where the logistic model earns its keep over the linear one. The slope of a straight line tells you that burnout is getting worse at roughly *X* staff per month — which sounds actionable until you ask: which lever do you pull? Hire faster? Provide more support? By how much? The slope gives you no purchase on those questions because it conflates two very different structural problems into a single number.
+
+The logistic parameters separate them. **t0** — the inflection point — tells you when the reinforcing loop peaked: that is when management's response needed to have already been running. Shifting t0 earlier means triggering the balancing loop sooner, getting contractors in, reducing scope, deploying wellness support before momentum builds rather than after it has. **K** — the upper asymptote — tells you where the system is heading if the current policy holds. Bringing K down is a different challenge: it is not about speed of response but about the *quality and strength* of the interventions themselves. A faster response that is too weak to change staff capacity will shift the inflection point but leave the equilibrium roughly where it was.
+
+What the logistic model gives us, in other words, is a precise characterisation of what "better management" actually means structurally: earlier trigger, stronger response, lower equilibrium. These are separable objectives, and they correspond to separable design choices. Here is what each parameter says about Agency A's transition.
+
+The fitted values are not statistical abstractions — each maps to something operationally real.
+
+**K ≈ 69 staff** is the equilibrium the system was heading toward. If Agency A had changed nothing about how it managed the transition, burnout would have stabilised at roughly 69 staff on reduced capacity — nearly three times the target. Reducing K is the goal of any structural intervention, not merely slowing the rate of increase.
+
+**L ≈ 10 staff** is the baseline level at the start of the transition: the pre-existing burnout load before the restructuring amplified it. Any similar transition will start from some non-zero baseline; understanding that starting point matters for calibrating the scale of the response.
+
+**t0 ≈ month 9** is the inflection point — the month of fastest burnout growth. Before it, the reinforcing loop was gaining momentum. After it, the balancing loop was strong enough to slow the rise, though not reverse it. In Agency A's case, the inflection arrived around September 2023, roughly three quarters of the way through the first year.
+
+**r ≈ 0.48** is the growth rate: how quickly burnout spread through the team during the reinforcing phase. This is shaped by how rapidly stress propagates between colleagues and how long it takes an individual to tip from stressed to at reduced capacity.
+
+The logistic model reveals something the linear model cannot: Agency A's problem was not simply that burnout was increasing, but that the system arrived at an equilibrium far above the acceptable level, and did so because the balancing response came too late and acted too weakly. A system dynamics model can make that structure explicit — translating these parameters into feedback loops and testing what different policy choices would have meant for the outcome. That is the subject of the next tutorial.
+
+---
+
+## Summary
+
+- Agency A's monthly burnout data follows an **S-shaped trajectory**: slow early growth, a sharp acceleration phase, and a plateau well above the target.
+- A **linear model** confirms the trend is real and describes the average rate of increase, but it cannot capture the curvature or estimate where the system is heading.
+- The **four-parameter logistic** (`nls` / `SSfpl`) fits substantially better and returns four interpretable parameters: baseline (L), equilibrium (K), inflection point (t0), and growth rate (r).
+- Choosing a model that reflects the *shape of the underlying process* — not just goodness of fit — is what makes the analysis actionable: logistic parameters map to structural features that can, in principle, be changed.
+- In the next tutorial, we build a system dynamics model seeded from these parameters and test what different organisational policies would have produced at Agency A.

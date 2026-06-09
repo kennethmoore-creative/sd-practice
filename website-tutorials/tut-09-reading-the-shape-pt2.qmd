@@ -1,0 +1,779 @@
+---
+title: "Tutorial 9: Reading the Shape — Part 2"
+subtitle: "From fitted curve to feedback model — verifying structure and testing policy"
+author: "Kenneth Moore"
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(deSolve)
+source("../R/gg-helper-functions.R")
+
+staff_burnout_data <- tribble(
+  ~date,          ~burnt_out_staff,
+  "2023-01-01",   11,
+  "2023-02-01",   12,
+  "2023-03-01",   17,
+  "2023-04-01",   13,
+  "2023-05-01",   19,
+  "2023-06-01",   21,
+  "2023-07-01",   24,
+  "2023-08-01",   39,
+  "2023-09-01",   35,
+  "2023-10-01",   49,
+  "2023-11-01",   57,
+  "2023-12-01",   59,
+  "2024-01-01",   63,
+  "2024-02-01",   61,
+  "2024-03-01",   59,
+  "2024-04-01",   66,
+  "2024-05-01",   70,
+  "2024-06-01",   65,
+  "2024-07-01",   69,
+  "2024-08-01",   67,
+  "2024-09-01",   71,
+  "2024-10-01",   72,
+  "2024-11-01",   68,
+  "2024-12-01",   70
+) |>
+  mutate(date = as.Date(date), t = row_number())
+
+fit_nls <- nls(burnt_out_staff ~ SSfpl(t, A, B, xmid, scal), data = staff_burnout_data)
+coefs   <- coef(fit_nls)
+L_fit   <- coefs[["A"]]
+K_fit   <- coefs[["B"]]
+t0_fit  <- coefs[["xmid"]]
+r_fit   <- 1 / coefs[["scal"]]
+
+p_K <- K_fit
+p_L <- L_fit
+p_r <- r_fit
+```
+
+---
+
+## From Fitted Curve to Feedback Model
+
+Part 1 established that Agency A's burnout data follows an S-shaped trajectory and extracted four parameters from a logistic curve fit: K (the equilibrium), L (the baseline), r (the growth rate), and t0 (the inflection point). Each carries operational meaning. But a statistical curve, however well-fitted, is a description — it tells us what the data looks like, not what produced it.
+
+Part 2 completes the pipeline. The goal is to take those parameters and build a system dynamics model that reproduces the same curve from the inside: specifying the feedback structure that generates S-shaped growth, seeding it with the Part 1 estimates, and verifying that the SD model traces the same trajectory. Once that connection is established, we replace the minimal logistic structure with a richer mechanistic model — one that exposes explicit policy levers and lets us ask what would have happened under different management choices.
+
+This is the second half of SD in the wild. Statistical modelling told us the shape of the problem. System dynamics asks what feedback structure produced that shape, and opens the door to policy analysis.
+
+---
+
+## The Derivative of the Logistic
+
+Before writing any model code, one piece of mathematical scaffolding is worth acknowledging. `deSolve` does not take a fitted curve as input — it takes a **derivative**: a function that, given the current level of the stock, returns how fast that stock is changing right now. The solver then integrates that derivative numerically, step by step, to reconstruct the trajectory.
+
+This means we need the rate-of-change form of the logistic, not the solution form that `nls()` fitted in Part 1. The derivative of the logistic equation is:
+
+$$\frac{dy}{dt} = r \cdot (y - L) \cdot \left(1 - \frac{y - L}{K - L}\right)$$
+
+You do not need to derive this — the point is to read it. The term $(y - L)$ is how far above the baseline the stock currently sits: the active burnout above the pre-existing level. The term $(1 - (y-L)/(K-L))$ is how much headroom remains before the ceiling K: it equals 1 when the stock is near L and shrinks toward 0 as the stock approaches K. Growth is fastest in the middle — when both terms are substantial — and slow at both ends. This is the expression we hand to `ode()`.
+
+---
+
+## Parameters from Part 1
+
+The four parameters are carried forward from the Part 1 nls fit and used to seed the SD model directly.
+
+```{r}
+#| label: params-recap
+
+tibble(
+  parameter = c("K — upper asymptote (equilibrium)", "L — lower asymptote (baseline)",
+                "r — growth rate", "t0 — inflection month"),
+  value     = c(round(K_fit, 1), round(L_fit, 1), round(r_fit, 3), round(t0_fit, 1))
+) |> print()
+```
+
+Note that `t0` does not appear in the ODE — the inflection point is implicit in the initial condition. Seeding the stock at the observed value of 11 in month 1 and letting the model integrate forward naturally reproduces the inflection at the right time.
+
+---
+
+## A Minimal Logistic SD Model
+
+We implement the derivative expression directly as a `deSolve` model function.
+
+```{r}
+#| label: logistic-model
+
+logistic_model <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    f_net <- p_r * (s_burnt_out - p_L) * (1 - (s_burnt_out - p_L) / (p_K - p_L))
+    list(c(f_net))
+  })
+}
+
+sim_logistic <- ode(
+  y      = c(s_burnt_out = 11),
+  times  = seq(1, 24, by = 0.1),
+  parms  = c(p_K = p_K, p_L = p_L, p_r = p_r),
+  func   = logistic_model,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(
+    time        = as.numeric(time),
+    s_burnt_out = as.numeric(s_burnt_out),
+    date        = as.Date("2023-01-01") + (time - 1) * 30.44
+  )
+```
+
+The model function body is a direct translation of the derivative expression. `with(as.list(c(stocks, params)), {...})` is the standard `deSolve` idiom that makes stock and parameter names available directly inside the braces. `method = "rk4"` is appropriate here because the logistic derivative changes rapidly near the inflection point, and RK4 evaluates at four sub-steps per interval to track that curvature accurately.
+
+Let's check that the ODE reproduces the curve from Part 1.
+
+```{r}
+#| label: fig-logistic-verify
+#| echo: false
+#| fig-cap: "SD model output (blue) against observed data (grey). Parameters are seeded directly from the Part 1 nls fit. The close agreement confirms that the ODE correctly implements the derivative of the fitted logistic. The pipeline is closed: nls fitted the solution; the ODE specifies the derivative; the solver integrates it back to the same curve."
+#| fig-height: 4.0
+
+ggplot() +
+  geom_point(data = staff_burnout_data,
+             aes(x = date, y = burnt_out_staff),
+             colour = "grey50", size = 1.8, alpha = 0.7) +
+  geom_line(data = sim_logistic,
+            aes(x = date, y = s_burnt_out),
+            colour = "#619CFF", linewidth = 1.0) +
+  geom_hline(yintercept = 25, linetype = "dashed",
+             colour = "grey40", linewidth = 0.5) +
+  annotate("text", x = as.Date("2023-01-01"), y = 28,
+           label = "Target: < 25 staff", colour = "grey40",
+           size = 3, hjust = 0) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  labs(
+    title    = "Minimal Logistic SD Model — Verification",
+    subtitle = "Parameters seeded from nls  |  Grey points: observed data",
+    x        = NULL,
+    y        = "Staff on reduced capacity (count)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+---
+
+## Separating the Flows
+
+The single net flow `f_net` conflates two distinct processes. Expanding the logistic derivative algebraically separates them:
+
+$$\frac{dy}{dt} = \underbrace{r \cdot (y - L)}_{\text{f\_in: contagion (R1)}} \ - \ \underbrace{\frac{r \cdot (y - L)^2}{K - L}}_{\text{f\_out: recovery drag (B1)}}$$
+
+The inflow scales linearly with active burnout — each affected person increases pressure on the remaining team, accelerating further burnout. This is the reinforcing loop (R1). The outflow scales with the *square* of active burnout — as the affected count rises, density-dependent recovery effects strengthen and the balancing loop (B1) increasingly resists further growth. The two flows are in balance exactly at equilibrium: $y^* = K$.
+
+```{r}
+#| label: decomposed-model
+
+logistic_decomposed <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    f_in  <- p_r * (s_burnt_out - p_L)
+    f_out <- p_r * (s_burnt_out - p_L)^2 / (p_K - p_L)
+    list(c(f_in - f_out), inflow = f_in, outflow = f_out)
+  })
+}
+
+sim_decomposed <- ode(
+  y      = c(s_burnt_out = 11),
+  times  = seq(1, 24, by = 0.1),
+  parms  = c(p_K = p_K, p_L = p_L, p_r = p_r),
+  func   = logistic_decomposed,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(
+    time        = as.numeric(time),
+    s_burnt_out = as.numeric(s_burnt_out),
+    date        = as.Date("2023-01-01") + (time - 1) * 30.44
+  )
+```
+
+The trajectory is identical to the previous section — only the structure is now visible. Tracking `inflow` and `outflow` as separate outputs makes it possible to inspect when each loop dominates and when they equalise.
+
+```{r}
+#| label: fig-decomposed-sfd
+#| echo: false
+#| fig-cap: "Stock-and-flow structure of the decomposed logistic. R1 (blue, reinforcing) closes through the stock back to the burning-out inflow; B1 (red, balancing) closes through the stock back to the recovering outflow. Both p_r and p_L appear in both flows — they set the shared rate and baseline. p_K appears only in the outflow: it is the capacity ceiling that makes B1 grow faster than R1 as the stock rises, eventually halting growth."
+#| fig-height: 4.5
+
+flow_arrow <- arrow(length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+
+burning_valve_x <- 2.55
+burning_valve_y <- 4.0
+recovery_valve_x <- 8.45
+recovery_valve_y <- 4.0
+
+ggplot() +
+  # Source cloud
+  geom_polygon(data = make_cloud(0.75, 4.0), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  # Burning out — inflow (R1)
+  annotate("segment", x = 1.2, xend = 3.85, y = 4.0, yend = 4.0,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = burning_valve_x, y = burning_valve_y,
+           size = 5, colour = "#4e8cd4") +
+  annotate("text", x = burning_valve_x, y = 4.44,
+           label = "burning\nout", size = 3.2, colour = "#4e8cd4", lineheight = 0.9) +
+  # Stock
+  annotate("rect", xmin = 3.85, xmax = 7.15, ymin = 3.45, ymax = 4.55,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 3.97, xmax = 7.03, ymin = 3.57, ymax = 4.43,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 5.5, y = 4.0, label = "burnt-out\nstaff",
+           size = 3.2, fontface = "bold", lineheight = 0.9) +
+  # Recovering — outflow (B1)
+  annotate("segment", x = 7.15, xend = 9.8, y = 4.0, yend = 4.0,
+           linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
+  annotate("point", x = recovery_valve_x, y = recovery_valve_y,
+           size = 5, colour = "#d45b4e") +
+  annotate("text", x = recovery_valve_x, y = 4.44,
+           label = "recovering", size = 3.2, colour = "#d45b4e", lineheight = 0.9) +
+  # Sink cloud
+  geom_polygon(data = make_cloud(10.25, 4.0), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+
+  # Parameters — p_r and p_L centred (shared by both flows); p_K right (B1 only)
+  annotate("text", x = 5.5, y = 2.5, label = "p_r", size = 3.0) +
+  annotate("text", x = 5.5, y = 1.6, label = "p_L", size = 3.0) +
+  annotate("text", x = 9.0, y = 2.5, label = "p_K", size = 3.0) +
+
+  # Info: stock → burning-out valve (R1 reinforcing loop)
+  geom_curve(
+    data = data.frame(x = 4.5, y = 3.45, xend = 2.6, yend = 3.88),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → recovery valve (B1 balancing loop)
+  geom_curve(
+    data = data.frame(x = 6.5, y = 3.45, xend = 8.2, yend = 3.88),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: p_r → burning-out valve
+  geom_curve(
+    data = data.frame(x = 5.0, y = 2.6, xend = 2.4, yend = 3.88),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: p_r → recovery valve
+  geom_curve(
+    data = data.frame(x = 6.0, y = 2.6, xend = 8.4, yend = 3.88),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: p_L → burning-out valve
+  geom_curve(
+    data = data.frame(x = 5.0, y = 1.7, xend = 2.4, yend = 3.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.15, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: p_L → recovery valve
+  geom_curve(
+    data = data.frame(x = 6.0, y = 1.7, xend = 8.5, yend = 3.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.15, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: p_K → recovery valve (B1 only)
+  geom_curve(
+    data = data.frame(x = 8.8, y = 2.6, xend = 8.6, yend = 3.88),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+
+  # Loop labels
+  annotate("text", x = 2.5, y = 2.9, label = "R1  (+)", size = 3.8,
+           colour = "#27ae60", fontface = "bold") +
+  annotate("text", x = 9.5, y = 3.1, label = "B1  (−)", size = 3.8,
+           colour = "#c0392b", fontface = "bold") +
+
+  theme_void() +
+  coord_cartesian(xlim = c(0, 11), ylim = c(0.3, 5.1)) +
+  labs(title = "Decomposed Logistic — Stock-and-Flow Diagram")
+```
+
+---
+
+## Mathematical Equivalency
+
+Splitting the net flow into two explicit flows in the previous section was an example of arithmetic manipulation — distributing a product into a difference of two terms. No new parameters entered; no relationships changed. Equations can be written in countless equivalent forms. Terms can be combined or separated, multiplied through, cancelled, moved between sides of an equation — as long as every operation is applied correctly, only 
+the appearance changes.
+
+This matters because it means single-stock S-shaped growth systems can generally be rearranged from, and back into, the generic inflow-outflow structure we just saw above in Figure 2. We have already encountered this idea across Tutorial 5: S-shaped growth is a *behaviour*, not a structure. Two mechanistically different models produced the same curve from entirely different causal chains. The same logic applies at the level of equations — many algebraically equivalent formulations can generate identical trajectories, and for single-stock logistic systems, you can trust that the structure can be navigated between forms.
+
+In fact, Tutorial 5's Structure 2 — the mechanistic food balance — is now immediately recognisable as a close structural relative of the model we are about to build. Its model function is worth placing alongside what we have just derived.
+
+```{r}
+#| label: model-s2-reference
+
+# Tutorial 5, Structure 2 — mechanistic food balance (single-stock S-shaped growth).
+# The food threshold T = p_replenishment / p_rabbit_appetite separates two regimes:
+#   below T: each rabbit gets its full ration — deaths proceed at baseline rate
+#   above T: food per rabbit falls — effective lifetime shrinks — deaths accelerate
+model_s2 <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    c_food_per_rabbit      <- p_replenishment / max(s_rabbit_population, 0.001)
+    c_normalized_nutrition <- min(c_food_per_rabbit / p_rabbit_appetite, 1)
+    c_effective_lifetime   <- p_baseline_average_lifetime * c_normalized_nutrition
+    f_birthing <- s_rabbit_population * p_births_normal
+    f_dying    <- s_rabbit_population / c_effective_lifetime
+    ds_dt <- f_birthing - f_dying
+    return(list(c(ds_dt), birthing = f_birthing, dying = f_dying,
+                normalized_nutrition = c_normalized_nutrition))
+  })
+}
+```
+
+
+```{r}
+#| label: fig-s2-diagram
+#| echo: false
+#| fig-cap: "Tutorial 5, Structure 2: mechanistic food balance. Identical feedback geometry to the burnout model — inflow proportional to stock (R1), outflow driven by stock divided by an adjusted lifetime that shrinks above the food threshold (B1). Parameters and labels differ; the structure does not."
+#| fig-height: 4.5
+
+flow_arrow <- arrow(length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+
+births_valve_x <- 2.55
+births_valve_y <- 4.0
+deaths_valve_x <- 8.45
+deaths_valve_y <- 4.0
+
+ggplot() +
+  geom_polygon(data = make_cloud(0.75, births_valve_y), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 1.2, xend = 3.85, y = births_valve_y, yend = births_valve_y,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = births_valve_x, y = births_valve_y, size = 5, colour = "#4e8cd4") +
+  annotate("text", x = births_valve_x, y = 4.38, label = "birthing",
+           size = 3.2, colour = "#4e8cd4") +
+  annotate("rect", xmin = 3.85, xmax = 7.15, ymin = 3.45, ymax = 4.55,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 3.97, xmax = 7.03, ymin = 3.57, ymax = 4.43,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 5.5, y = 4.0, label = "rabbit population",
+           size = 3.5, fontface = "bold") +
+  annotate("segment", x = 7.15, xend = 9.8, y = deaths_valve_y, yend = deaths_valve_y,
+           linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
+  annotate("point", x = deaths_valve_x, y = deaths_valve_y, size = 5, colour = "#d45b4e") +
+  annotate("text", x = deaths_valve_x, y = 4.38, label = "dying",
+           size = 3.2, colour = "#d45b4e") +
+  geom_polygon(data = make_cloud(10.25, deaths_valve_y), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("text", x = 5.5, y = 2.75, label = "food per\nrabbit",
+           size = 3.0, fontface = "bold") +
+  annotate("text", x = 5.5, y = 1.85, label = "normalized\nnutrition",
+           size = 3.0, fontface = "bold") +
+  annotate("text", x = 1.5, y = 2.6,  label = "births\nnormal",             size = 3.0) +
+  annotate("text", x = 10,  y = 2.6,  label = "baseline average\nlifetime", size = 3.0) +
+  annotate("text", x = 2.9, y = 2.75, label = "food\nsupply",               size = 3.0) +
+  annotate("text", x = 2.9, y = 1.85, label = "rabbit\nappetite",           size = 3.0) +
+  # Auxiliary: effective lifetime
+  annotate("text", x = 8.2, y = 1.85, label = "effective\nlifetime",
+           size = 3.0, fontface = "bold") +
+  # Vertical auxiliary chain
+  annotate("segment", x = 5.5, xend = 5.5, y = 3.45, yend = 2.98,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+  annotate("segment", x = 5.5, xend = 5.5, y = 2.52, yend = 2.08,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+  # Info: food supply → food per rabbit
+  geom_curve(
+    data = data.frame(x = 3.2, y = 2.75, xend = 5, yend = 2.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: rabbit appetite → normalized nutrition
+  geom_curve(
+    data = data.frame(x = 3.2, y = 1.85, xend = 4.7, yend = 1.85),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: normalized nutrition → effective lifetime
+  geom_curve(
+    data = data.frame(x = 6.3, y = 1.85, xend = 7.6, yend = 1.85),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: baseline average lifetime → effective lifetime
+  geom_curve(
+    data = data.frame(x = 10, y = 2.4, xend = 8.6, yend = 1.9),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: effective lifetime → dying valve
+  geom_curve(
+    data = data.frame(x = 8.6, xend = 8.55, y = 2.05, yend = deaths_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → births valve (R1)
+  geom_curve(
+    data = data.frame(x = 4.5, y = 3.45,
+                      xend = births_valve_x + 0.15, yend = births_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → dying valve (B1)
+  geom_curve(
+    data = data.frame(x = 6.5, y = 3.45,
+                      xend = deaths_valve_x - 0.1, yend = deaths_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: births normal → births valve
+  geom_curve(
+    data = data.frame(x = 1.9, y = 2.6,
+                      xend = births_valve_x - 0.1, yend = births_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  annotate("text", x = 2.7, y = 3.3, label = "R1  (+)", size = 3.8,
+           colour = "#27ae60", fontface = "bold") +
+  annotate("text", x = 7,   y = 2.6, label = "B1  (−)", size = 3.8,
+           colour = "#c0392b", fontface = "bold") +
+  theme_void() +
+  coord_cartesian(xlim = c(0, 11), ylim = c(0.5, 5.1)) +
+  labs(title = "Tutorial 5, Structure 2 — stock-and-flow diagram")
+```
+
+The structural logic maps directly onto the burnout model we are about to write, so let's get familiar with a few alternative parameters that will show up below:
+
+| Element | Tutorial 5 — rabbits | Tutorial 9 — staff burnout |
+|---------|----------------------|---------------------------|
+| Stock | rabbit population | burnt-out staff |
+| Inflow (R1) | `s × p_births_normal` | `s × p_spread_rate` |
+| Resource threshold | `p_replenishment / p_rabbit_appetite` | `p_intervention_threshold` |
+| Below threshold | full ration → baseline lifetime → slow deaths | below trigger → baseline recovery pace |
+| Above threshold | food scarcity → shorter lifetime → faster deaths | above trigger → compressed recovery window → faster return |
+| Outflow (B1) | `s / (p_average_lifetime × c_normalized_nutrition)` | `s / c_effective_recovery_months` |
+
+In both models the outflow takes the form `stock / adjusted_time`, where the adjusted time sits at its baseline below the threshold and shrinks above it. The mechanism differs — food scarcity versus management escalation — but the feedback geometry is identical.
+
+```{r}
+#| label: fig-sfd
+#| echo: false
+#| fig-cap: "Stock-and-flow structure of the policy model. The burnt-out staff stock accumulates through the burning-out inflow (R1, reinforcing) and drains through the recovery outflow (B1, balancing). c_burnout_ratio and c_effective_recovery_months mediate the policy response: once the count exceeds the intervention threshold, effective recovery months shrinks and recovery accelerates."
+#| fig-height: 4.5
+
+flow_arrow <- arrow(length = unit(0.44, "cm"), type = "closed")
+info_arrow <- arrow(length = unit(0.26, "cm"), type = "open")
+
+burning_valve_x <- 2.55
+burning_valve_y <- 4.0
+recovery_valve_x  <- 8.45
+recovery_valve_y  <- 4.0
+
+ggplot() +
+  geom_polygon(data = make_cloud(0.75, burning_valve_y), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("segment", x = 1.2, xend = 3.85,
+           y = burning_valve_y, yend = burning_valve_y,
+           linewidth = 2, colour = "#4e8cd4", arrow = flow_arrow) +
+  annotate("point", x = burning_valve_x, y = burning_valve_y,
+           size = 5, colour = "#4e8cd4") +
+  annotate("text", x = burning_valve_x, y = 4.44,
+           label = "burning\nout", size = 3.2, colour = "#4e8cd4",
+           lineheight = 0.9) +
+  annotate("rect", xmin = 3.85, xmax = 7.15, ymin = 3.45, ymax = 4.55,
+           fill = "white", colour = "black", linewidth = 1.6) +
+  annotate("rect", xmin = 3.97, xmax = 7.03, ymin = 3.57, ymax = 4.43,
+           fill = "#fafaf0", colour = "black", linewidth = 0.5) +
+  annotate("text", x = 5.5, y = 4.0, label = "burnt-out\nstaff",
+           size = 3.2, fontface = "bold", lineheight = 0.9) +
+  annotate("segment", x = 7.15, xend = 9.8,
+           y = recovery_valve_y, yend = recovery_valve_y,
+           linewidth = 2, colour = "#d45b4e", arrow = flow_arrow) +
+  annotate("point", x = recovery_valve_x, y = recovery_valve_y,
+           size = 5, colour = "#d45b4e") +
+  annotate("text", x = recovery_valve_x, y = 4.44,
+           label = "recovery", size = 3.2, colour = "#d45b4e",
+           lineheight = 0.9) +
+  geom_polygon(data = make_cloud(10.25, recovery_valve_y), aes(x, y),
+               fill = "white", colour = "black", linewidth = 0.7) +
+  annotate("text", x = 5.5, y = 2.75, label = "burnout\nratio",
+           size = 3.0, fontface = "bold", lineheight = 0.9) +
+  annotate("text", x = 5.5, y = 1.85, label = "effective\nrecovery months",
+           size = 3.0, fontface = "bold", lineheight = 0.9) +
+  annotate("text", x = 1.5,  y = 2.6,  label = "spread\nrate",
+           size = 3.0, lineheight = 0.9) +
+  annotate("text", x = 9.1,  y = 2.6,  label = "recovery\nmonths",
+           size = 3.0, lineheight = 0.9) +
+  annotate("text", x = 2.9,  y = 2.75, label = "intervention\nthreshold",
+           size = 3.0, lineheight = 0.9) +
+  # Vertical auxiliary chain
+  annotate("segment", x = 5.5, xend = 5.5, y = 3.45, yend = 2.98,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+  annotate("segment", x = 5.5, xend = 5.5, y = 2.52, yend = 2.08,
+           colour = "grey40", linewidth = 0.5, arrow = info_arrow) +
+  # Info: intervention threshold → burnout ratio
+  geom_curve(
+    data = data.frame(x = 3.45, y = 2.75, xend = 4.82, yend = 2.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: effective recovery months → recovery valve
+  geom_curve(
+    data = data.frame(x = 6.3, y = 1.85,
+                      xend = recovery_valve_x, yend = recovery_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.35, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → burning-out valve (R1)
+  geom_curve(
+    data = data.frame(x = 4.5, y = 3.45,
+                      xend = burning_valve_x + 0.1, yend = burning_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: stock → recovery valve (B1)
+  geom_curve(
+    data = data.frame(x = 6.5, y = 3.45,
+                      xend = recovery_valve_x - 0.1, yend = recovery_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = 0.38, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: spread rate → burning-out valve
+  geom_curve(
+    data = data.frame(x = 1.5, y = 2.8,
+                      xend = burning_valve_x - 0.1, yend = burning_valve_y - 0.12),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.3, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  # Info: recovery months → effective recovery months
+  geom_curve(
+    data = data.frame(x = 8.8, y = 2.42, xend = 6.6, yend = 1.75),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    curvature = -0.2, colour = "grey40", linewidth = 0.5, arrow = info_arrow
+  ) +
+  annotate("text", x = 2.7, y = 3.3, label = "R1  (+)", size = 3.8,
+           colour = "#27ae60", fontface = "bold") +
+  annotate("text", x = 7.0, y = 2.6, label = "B1  (−)", size = 3.8,
+           colour = "#c0392b", fontface = "bold") +
+  theme_void() +
+  coord_cartesian(xlim = c(0, 11), ylim = c(0.5, 5.1)) +
+  labs(title = "Staff Burnout — Stock-and-Flow Diagram")
+```
+
+R1 (green) connects the stock back to the burning-out inflow: more affected staff → more workload on healthy colleagues → more burnout. B1 (red) runs through the auxiliary chain: as the count rises above the intervention threshold, `c_burnout_ratio` exceeds 1, `c_effective_recovery_months` shrinks, and recovery accelerates. The intervention threshold and recovery months are the two parameters Agency B controls. The spread rate is structural — it reflects how work is organised and how stress propagates through the team — and is harder to change by policy alone.
+
+---
+
+## Defining the analytical model
+
+The policy model has three parameters and two calculated converters. The parameters are management-level quantities: `p_spread_rate` (how quickly burnout propagates through the team), `p_recovery_months` (the baseline time for a staff member to return to full capacity), and `p_intervention_threshold` (the headcount at which escalated management response kicks in).
+
+The two converters translate those parameters into the flows at each time step. `c_burnout_ratio` tracks how far above (or below) the intervention threshold the stock currently sits — it equals 1 exactly at the trigger point, and rises proportionally above it. `c_effective_recovery_months` converts that ratio into an effective recovery time: it stays at `p_recovery_months` while burnout is below the threshold, and contracts proportionally once the threshold is exceeded. Shorter effective recovery months means faster return to capacity — the balancing loop tightens.
+
+
+
+
+```{r}
+#| label: policy-model
+
+model_burnout <- function(time, stocks, params) {
+  with(as.list(c(stocks, params)), {
+    c_burnout_ratio             <- s_burnt_out / p_intervention_threshold
+    c_effective_recovery_months <- p_recovery_months / max(c_burnout_ratio, 1)
+
+    # R1: stress contagion — each burnt-out person raises load on the rest
+    f_burning_out <- s_burnt_out * p_spread_rate
+
+    # B1: management response — effective recovery window contracts above threshold
+    f_recovery    <- s_burnt_out / c_effective_recovery_months
+
+    ds_burnt_out_dt <- f_burning_out - f_recovery
+
+    return(list(
+      c(ds_burnt_out_dt),
+      burning_out               = f_burning_out,
+      recovery                  = f_recovery,
+      burnout_ratio             = c_burnout_ratio,
+      effective_recovery_months = c_effective_recovery_months
+    ))
+  })
+}
+```
+
+## Setting parameter values
+
+With three free parameters and a model that must reproduce the observed data, how do we decide what values to use? In practice this involves some informed judgement — and, frankly, some trial and error. But the fitted logistic from Part 1 gives us a powerful anchor.
+
+**What we know from the data.** Two of the four nls parameters transfer directly. The lower asymptote $L \approx$ `r round(L_fit, 1)` sets the initial stock: burnout began at the pre-transition baseline of 11 staff. The inflection month $t_0 \approx$ `r round(t0_fit, 1)` requires no free parameter at all — it is implicit in the initial condition and reproduced automatically once the model is seeded correctly.
+
+**What the equilibrium constraint tells us.** Setting inflow equal to outflow in `model_burnout` at equilibrium gives:
+
+$$s^* = p\_spread\_rate \times p\_recovery\_months \times p\_intervention\_threshold$$
+
+We know $s^* = K_{fit} \approx$ `r round(K_fit, 1)`. This is a single equation in three unknowns — it constrains the *product* of the parameters, not any individual value. But it is still enormously useful: once any two parameters are fixed on operational grounds, the third is fully determined.
+
+**Choosing two by judgement.** The two management levers are the most interpretable. `p_recovery_months` is observable — roughly how long it takes a staff member to return to full capacity under active management attention. `p_intervention_threshold` is a policy choice — the headcount at which the organisation escalates its response. Both can be estimated from operational experience, even if imprecisely. We set `p_recovery_months = 7.3` and `p_intervention_threshold = 32` on this basis.
+
+**Solving for the third.** With those two fixed, `p_spread_rate` is no longer a free parameter — it is back-calculated from the equilibrium identity:
+
+$$p\_spread\_rate = \frac{K_{fit}}{p\_recovery\_months \times p\_intervention\_threshold} = \frac{`r round(K_fit, 1)`}{7.3 \times 32} \approx 0.30$$
+
+Note that this is not the same as $r_{fit} \approx$ `r round(r_fit, 3)` from Part 1. In the decomposed logistic, $r$ appeared in both flows and cancelled at equilibrium. In the policy model it appears only in the inflow, so the equilibrium algebra is different and produces a different numerical value. The two quantities describe the same underlying contagion dynamic, but through different model structures.
+
+| Part 1 (nls) | Fit value | Policy model | Policy value | How it was set |
+|---|---|---|---|---|
+| L — lower asymptote | `r round(L_fit, 1)` | Initial stock `s_burnt_out` | 11 | Direct read-off |
+| K — upper asymptote | `r round(K_fit, 1)` | Equilibrium $s^*$ | `r round(K_fit, 1)` | Constrains the parameter product |
+| r — growth rate | `r round(r_fit, 3)` | `p_spread_rate` | 0.30 | Back-calculated once the two levers are fixed |
+| t0 — inflection month | `r round(t0_fit, 1)` | (implicit) | — | Encoded in the initial condition |
+
+```{r}
+#| label: policy-params
+
+params_burnout <- c(
+  p_spread_rate            = 0.30,  # calibrated: K_fit / (p_recovery_months × p_intervention_threshold)
+  p_recovery_months        = 7.3,   # management choice: baseline months back to full capacity
+  p_intervention_threshold = 32     # management choice: staff count that triggers escalation
+)
+```
+
+```{r}
+#| label: burnout-baseline-sim
+
+sim_burnout_baseline <- ode(
+  y      = c(s_burnt_out = 11),
+  times  = seq(1, 24, by = 0.1),
+  func   = model_burnout,
+  parms  = params_burnout,
+  method = "rk4"
+) |>
+  as_tibble() |>
+  mutate(
+    time        = as.numeric(time),
+    s_burnt_out = as.numeric(s_burnt_out),
+    date        = as.Date("2023-01-01") + (time - 1) * 30.44
+  )
+```
+
+```{r}
+#| label: fig-burnout-baseline-verify
+#| echo: false
+#| fig-cap: "Policy model output (blue) against observed data (grey). Default parameters reproduce the observed trajectory closely, confirming that the equilibrium identity and the domain-grounded parameter choices jointly recover the same S-shaped curve as the fitted logistic."
+#| fig-height: 4.0
+
+ggplot() +
+  geom_point(data = staff_burnout_data,
+             aes(x = date, y = burnt_out_staff),
+             colour = "grey50", size = 1.8, alpha = 0.7) +
+  geom_line(data = sim_burnout_baseline,
+            aes(x = date, y = s_burnt_out),
+            colour = "#619CFF", linewidth = 1.0) +
+  geom_hline(yintercept = 25, linetype = "dashed",
+             colour = "grey40", linewidth = 0.5) +
+  annotate("text", x = as.Date("2023-01-01"), y = 28,
+           label = "Target: < 25 staff", colour = "grey40",
+           size = 3, hjust = 0) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  labs(
+    title    = "Policy Model — Baseline Verification",
+    subtitle = "Default parameters  |  Grey points: observed data",
+    x        = NULL,
+    y        = "Staff on reduced capacity (count)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+---
+
+## Policy Levers & Scenarios
+
+We test four combinations of the two levers, holding the spread rate constant.
+
+```{r}
+#| label: scenarios
+
+scenarios <- list(
+  `Current policy`  = c(p_spread_rate = 0.30, p_recovery_months = 7.3, p_intervention_threshold = 32),
+  `Earlier trigger` = c(p_spread_rate = 0.30, p_recovery_months = 7.3, p_intervention_threshold = 20),
+  `Recovery support` = c(p_spread_rate = 0.30, p_recovery_months = 4.0, p_intervention_threshold = 32),
+  `Both levers`     = c(p_spread_rate = 0.30, p_recovery_months = 4.0, p_intervention_threshold = 20)
+)
+
+sim_results <- imap_dfr(scenarios, function(params, label) {
+  ode(y      = c(s_burnt_out = 11),
+      times  = seq(1, 24, by = 0.1),
+      func   = model_burnout,
+      parms  = params,
+      method = "rk4") |>
+    as_tibble() |>
+    transmute(
+      scenario        = label,
+      time            = as.numeric(time),
+      date            = as.Date("2023-01-01") + (time - 1) * 30.44,
+      burnt_out_staff = as.numeric(s_burnt_out)
+    )
+}) |>
+  mutate(scenario = factor(scenario, levels = names(scenarios)))
+
+sim_results |>
+  group_by(scenario) |>
+  filter(time == max(time)) |>
+  transmute(scenario, equilibrium = round(burnt_out_staff, 1)) |>
+  print()
+```
+
+Now let's compare all four trajectories against the observed data.
+
+```{r}
+#| label: fig-scenarios
+#| echo: false
+#| fig-cap: "Four policy scenarios against observed Agency A data (grey points). Current policy replicates the observed trajectory, confirming the model is calibrated correctly. Earlier trigger and faster response each lower the equilibrium, but neither reaches the target of 25 alone. Only pulling both levers together brings the system below it."
+#| fig-height: 4.5
+
+ggplot(sim_results, aes(x = date, y = burnt_out_staff, colour = scenario)) +
+  geom_line(linewidth = 0.9) +
+  geom_point(
+    data = staff_burnout_data,
+    aes(x = date, y = burnt_out_staff),
+    colour = "grey50", size = 1.5, alpha = 0.7, inherit.aes = FALSE
+  ) +
+  geom_hline(yintercept = 25, linetype = "dashed",
+             colour = "grey40", linewidth = 0.5) +
+  annotate("text", x = as.Date("2023-01-01"), y = 28,
+           label = "Target: < 25 staff", colour = "grey40",
+           size = 3, hjust = 0) +
+  scale_y_continuous(limits = c(0, 75)) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
+  scale_colour_manual(values = c(
+    "Current policy"  = "#E74C3C",
+    "Earlier trigger" = "#F39C12",
+    "Recovery support" = "#3498DB",
+    "Both levers"     = "#27AE60"
+  )) +
+  labs(
+    title    = "Staff Burnout — Policy Scenarios",
+    subtitle = "Grey points: observed Agency A data  |  Lines: SD model",
+    x        = NULL,
+    y        = "Staff on reduced capacity (count)",
+    colour   = "Policy scenario"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x     = element_text(angle = 30, hjust = 1)
+  )
+```
+
+The result is unambiguous: the gap between Agency A's outcome and the target is not an unavoidable consequence of the redundancies. It is structural — encoded in when and how strongly the organisation responded. Neither lever alone is enough; only pulling both brings the equilibrium below 25. For Agency B, that is the design brief: agree on an intervention trigger well below 32, and ensure the support response is resourced aggressively enough to halve the effective recovery time.
+
+---
+
+## Summary
+
+- Part 2 completes the SD-in-the-wild pipeline: the parameters fitted in Part 1 seed an ODE whose derivative form is taken directly from the logistic equation, and the solver integrates it back to the same trajectory.
+- Expanding the single net flow into separate inflow and outflow makes the feedback structure explicit: **R1** (contagion, reinforcing) and **B1** (management response, balancing). This is a purely algebraic rearrangement — the same equation, written to expose its structure.
+- The feedback geometry is the same as Tutorial 5's mechanistic food balance: inflow proportional to stock, outflow equal to stock divided by an adjusted time that shrinks above a resource threshold. The threshold here is an intervention trigger rather than a food supply, but the structure is identical.
+- `p_spread_rate` comes directly from `r_fit`; the initial stock is near `L_fit`; the product of the two management levers is constrained by `K_fit`. Every parameter has a clear home in the Part 1 fit.
+- Neither lever alone is sufficient to reach the target of 25 staff. Only combining an earlier trigger with a faster response brings the equilibrium below it — the structural finding Agency B needs before their own transition begins.
