@@ -1,6 +1,6 @@
 # Landing Page Content
 
-## [Bespoke Solutions](services-detail.md#bespoke-solutions)
+## [Business Solutions](services-detail.md#business-solutions)
 End-to-end technical delivery — from raw data to production-ready systems.
 
 Automation & Optimisation
@@ -23,7 +23,7 @@ Workshop Facilitation
 
 # Services Content
 
-# Bespoke Solutions
+# Business Solutions
 
 End-to-end technical delivery — from raw data to production-ready systems.
 
