@@ -3,9 +3,9 @@ project:
   output-dir: _site
   resources:
     - assets/
+    - services.html
   render:
     - "*.qmd"
-    - "*.html"
     - "!bio.md"
     - "!services-detail.md"
 
