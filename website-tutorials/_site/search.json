@@ -18,7 +18,7 @@
     "href": "tutorials.html#tutorials",
     "title": "System Dynamics Tutorials",
     "section": "Tutorials",
-    "text": "Tutorials\n\n\n\nTutorial\nKey concept\n\n\n\n\nFirst-Order Positive Feedback\nExponential growth\n\n\nBehavior of Positive Feedback Systems\nSensitivity analysis\n\n\nFirst-Order Negative Feedback\nGoal-seeking / exponential decay\n\n\nClosing the Gap\nAsymptotic growth and decay\n\n\nS-Shaped Growth\nCombined positive and negative feedback\n\n\nS-Shaped Growth — SIS Epidemic\nTwo-stock epidemic structure; product-driven nonlinearity\n\n\nSustained Oscillation — The Pendulum\nTwo-stock cross-coupled structure; RK4 integration\n\n\nDamped Oscillations — The Real Pendulum\nFriction as a structural factor; amplitude decay; phase portrait spiral"
+    "text": "Tutorials\n\n\n\nTutorial\nKey concept\n\n\n\n\nFirst-Order Positive Feedback\nExponential growth\n\n\nBehavior of Positive Feedback Systems\nSensitivity analysis\n\n\nFirst-Order Negative Feedback\nGoal-seeking / exponential decay\n\n\nClosing the Gap\nAsymptotic growth and decay\n\n\nS-Shaped Growth\nCombined positive and negative feedback\n\n\nS-Shaped Growth — SIS Epidemic\nTwo-stock epidemic structure; product-driven nonlinearity\n\n\nSustained Oscillation — The Pendulum\nTwo-stock cross-coupled structure\n\n\nDamped Oscillations — The Real Pendulum\nFriction as a structural factor"
   },
   {
     "objectID": "tut-07-oscillation-pendulum.html#introduction-what-is-sustained-oscillation",
