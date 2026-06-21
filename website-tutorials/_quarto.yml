@@ -4,6 +4,7 @@ project:
   resources:
     - assets/
     - services.html
+    - contact.html
     - CNAME
   render:
     - "*.qmd"
