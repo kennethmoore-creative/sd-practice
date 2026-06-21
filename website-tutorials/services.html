@@ -312,9 +312,64 @@
       border-top: 1px solid rgba(255,255,255,0.06);
     }
 
+    /* ─── Hamburger ─── */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .nav-toggle span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: white;
+      border-radius: 2px;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .nav-mobile-menu {
+      display: none;
+      position: fixed;
+      top: 64px;
+      left: 0; right: 0;
+      background: rgba(20, 41, 63, 0.98);
+      padding: 1.25rem 6%;
+      z-index: 99;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .nav-mobile-menu.open { display: block; }
+
+    .nav-mobile-menu a {
+      display: block;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      transition: color 0.2s;
+    }
+
+    .nav-mobile-menu a:last-child { border-bottom: none; }
+    .nav-mobile-menu a:hover { color: var(--amber-light); }
+
     /* ─── Responsive ─── */
     @media (max-width: 900px) {
       .nav-links { display: none; }
+      .nav-toggle { display: flex; }
       .jump-nav-inner { gap: 1rem; }
       .jump-label { display: none; }
       .service-detail { grid-template-columns: 1fr; }
@@ -335,7 +390,18 @@
       <li><a href="index.html#works">Works</a></li>
       <li><a href="index.html#contact">Contact</a></li>
     </ul>
+    <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
+
+  <div class="nav-mobile-menu" id="mobile-menu">
+    <a href="index.html#about" class="mobile-link">About</a>
+    <a href="services.html" class="mobile-link">Services</a>
+    <a href="index.html#tutorials" class="mobile-link">Tutorials</a>
+    <a href="index.html#works" class="mobile-link">Works</a>
+    <a href="index.html#contact" class="mobile-link">Contact</a>
+  </div>
 
   <!-- Page Header -->
   <div class="page-header">
@@ -489,6 +555,25 @@
   <footer>
     <p>&copy; 2026 Ken Moore. All rights reserved.</p>
   </footer>
+
+  <script>
+    const toggle = document.querySelector('.nav-toggle');
+    const menu = document.getElementById('mobile-menu');
+
+    toggle.addEventListener('click', function () {
+      const open = menu.classList.toggle('open');
+      toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open);
+    });
+
+    document.querySelectorAll('.mobile-link').forEach(function (link) {
+      link.addEventListener('click', function () {
+        menu.classList.remove('open');
+        toggle.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  </script>
 
 </body>
 </html>
