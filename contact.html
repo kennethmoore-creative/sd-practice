@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — Ken Moore</title>
+  <meta name="description" content="Get in touch with Ken Moore about data projects, training, or education.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:        #1e3a5f;
+      --navy-dark:   #14293f;
+      --amber:       #c9903a;
+      --amber-light: #dba84a;
+      --white:       #ffffff;
+      --off-white:   #f7f9fc;
+      --gray-light:  #edf2f7;
+      --gray-mid:    #a0aec0;
+      --text:        #2d3748;
+      --text-light:  #4a5568;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.6;
+    }
+
+    /* ─── Navigation ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(20, 41, 63, 0.96);
+      backdrop-filter: blur(8px);
+      height: 64px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: white;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--amber-light); }
+
+    /* ─── Page shell ─── */
+    main {
+      min-height: 100vh;
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 6% 80px;
+    }
+
+    .contact-inner {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--amber-light);
+      margin-bottom: 0.6rem;
+    }
+
+    .contact-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      color: white;
+      line-height: 1.15;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ─── Form ─── */
+    .form-group {
+      margin-bottom: 1.4rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      padding: 0.8rem 1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      color: white;
+      transition: border-color 0.2s, background 0.2s;
+      outline: none;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--amber-light);
+      background: rgba(255,255,255,0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 2rem;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--amber-light);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(201,144,58,0.35);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ─── Status messages ─── */
+    #form-status {
+      margin-top: 1.5rem;
+    }
+
+    .success-msg {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.7;
+    }
+
+    .success-msg strong {
+      color: var(--amber-light);
+    }
+
+    .error-msg {
+      font-size: 0.9rem;
+      color: #fc8181;
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      background: var(--navy-dark);
+      text-align: center;
+      padding: 1.5rem 6%;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-brand">Ken Moore</a>
+    <ul class="nav-links">
+      <li><a href="index.html#solutions">Solutions</a></li>
+      <li><a href="index.html#works">Works</a></li>
+      <li><a href="tutorials.html">Tutorials</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="contact-inner">
+      <p class="section-label">Get in Touch</p>
+      <h1 class="contact-heading">Let&rsquo;s work together</h1>
+
+      <form id="contact-form" action="https://formspree.io/f/mdarnlve" method="POST">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" required placeholder="Your name">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" required placeholder="Tell me about your project, training need, or question&hellip;"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submit-btn">Send Message</button>
+      </form>
+
+      <div id="form-status"></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Ken Moore. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const form = document.getElementById('contact-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const status = document.getElementById('form-status');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (res.ok) {
+          form.style.display = 'none';
+          status.innerHTML = '<p class="success-msg"><strong>Message sent.</strong> Thanks for reaching out — I\'ll be in touch soon.</p>';
+        } else {
+          const data = await res.json();
+          const msg = (data.errors || []).map(e => e.message).join(', ') || 'Something went wrong.';
+          status.innerHTML = '<p class="error-msg">' + msg + '</p>';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Message';
+        }
+      } catch (_) {
+        status.innerHTML = '<p class="error-msg">Connection error — please try again or email me directly.</p>';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Message';
+      }
+    });
+  </script>
+
+</body>
+</html>
