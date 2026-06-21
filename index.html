@@ -30,6 +30,7 @@
       color: var(--text);
       background: var(--white);
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
     /* ─── Navigation ─── */
@@ -653,6 +654,12 @@
       .hero-photo img { max-width: 240px; }
       .hero-buttons { justify-content: center; }
       .hero-sub { margin-left: auto; margin-right: auto; }
+      .hero-clients-logos {
+        grid-template-columns: repeat(2, auto);
+        justify-content: center;
+        gap: 1rem 1.5rem;
+      }
+      .hero-clients-logos img { height: 32px; max-width: 120px; }
       .about-grid { grid-template-columns: 1fr; gap: 0; }
       .about-label-col { margin-bottom: 1.5rem; }
       .services-grid { grid-template-columns: 1fr; }
