@@ -440,7 +440,7 @@
 
     .work-feature {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: 210px 1fr;
       gap: 50px;
       align-items: center;
       margin-top: 2.5rem;
@@ -457,6 +457,22 @@
     .book-cover:hover {
       transform: scale(1.5);
       box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+    }
+
+    .report-cover {
+      width: 200px;
+      border: 1px solid rgba(255,255,255,0.28);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+    }
+
+    .report-cover:hover {
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.2);
+    }
+
+    .work-feature + .work-feature {
+      margin-top: 3rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
     }
 
     .book-cover-placeholder {
@@ -920,6 +936,17 @@
           <div class="work-links">
             <a href="https://link.springer.com/book/10.1007/978-3-030-72965-3#toc" class="btn btn-outline" target="_blank" rel="noopener">Preview</a>
             <a href="https://link.springer.com/book/10.1007/978-3-030-72965-3" class="btn btn-primary" target="_blank" rel="noopener">Purchase</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-feature">
+        <img src="assets/report_cover.png" alt="Mapping Higher Education in Asia report cover" class="book-cover report-cover">
+        <div>
+          <h3 class="work-title">Mapping Higher Education in Asia: Contexts, Characteristics and Capabilities</h3>
+          <p class="work-desc">A contemporary briefing on how higher education in Asia is shaping a new global order. Highlights key sector characteristics within national, regional, and international contexts, traverses the statistical contours of 16 selected systems, and frames what lies ahead for a region of enduring strategic importance.</p>
+          <div class="work-links">
+            <a href="https://hefl.net/wp-content/uploads/2026/06/hefl-briefing-mapping-higher-education-in-asia-1.pdf" class="btn btn-primary" target="_blank" rel="noopener">Download</a>
           </div>
         </div>
       </div>
