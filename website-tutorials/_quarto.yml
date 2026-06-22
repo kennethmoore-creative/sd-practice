@@ -14,8 +14,12 @@ project:
 website:
   title: "Ken Moore Solutions"
   navbar:
-    left:
-      - text: Tutorials
+    right:
+      - href: index.html#solutions
+        text: "Solutions"
+      - href: index.html#works
+        text: "Works"
+      - text: "Learn"
         menu:
           - href: tutorials.qmd
             text: All Tutorials
@@ -35,6 +39,10 @@ website:
             text: "7: Oscillation"
           - href: tut-08-damped-oscillations.qmd
             text: "8: Damped Oscillations"
+      - href: index.html#about
+        text: "About"
+      - href: contact.html
+        text: "Contact"
 
 format:
   html:
