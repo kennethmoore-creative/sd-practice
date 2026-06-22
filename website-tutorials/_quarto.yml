@@ -3,7 +3,7 @@ project:
   output-dir: _site
   resources:
     - assets/
-    - services.html
+    - solutions.html
     - contact.html
     - CNAME
   render:
