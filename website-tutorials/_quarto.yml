@@ -5,6 +5,7 @@ project:
     - assets/
     - solutions.html
     - contact.html
+    - people.html
     - CNAME
   render:
     - "*.qmd"
