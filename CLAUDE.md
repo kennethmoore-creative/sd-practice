@@ -125,9 +125,9 @@ The `website-tutorials/` folder is a Quarto website published to GitHub Pages at
 - `website-tutorials/bio.md` — editable source for the About section bio text. Edit this file; never edit bio paragraphs directly in `index.html`.
 
 **Navigation pattern (all hand-crafted pages must use this order):**
-Solutions → Works → Learn → About → Contact
+Solutions → Works → People → Learn → About → Contact
 
-All three hand-crafted HTML pages (`index.html`, `solutions.html`, `contact.html`) include:
+All four hand-crafted HTML pages (`index.html`, `solutions.html`, `contact.html`, `people.html`) include:
 - Fixed navy navbar with brand + desktop links + hamburger toggle for mobile
 - Desktop links hidden at 900px, replaced by hamburger menu
 - Same nav order on every page

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>People — Ken Moore Solutions</title>
+  <meta name="description" content="Strategic and implementation partners — Ken Moore Solutions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&family=Fira+Sans:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:        #1e3a5f;
+      --navy-dark:   #14293f;
+      --amber:       #c9903a;
+      --amber-light: #dba84a;
+      --white:       #ffffff;
+      --off-white:   #f7f9fc;
+      --gray-light:  #edf2f7;
+      --gray-mid:    #a0aec0;
+      --text:        #2d3748;
+      --text-light:  #4a5568;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.6;
+    }
+
+    /* ─── Navigation ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(20, 41, 63, 0.96);
+      backdrop-filter: blur(8px);
+      height: 64px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: white;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--amber-light); }
+    .nav-links a.active { color: var(--amber-light); }
+
+    /* ─── Page Header ─── */
+    .page-header {
+      background: var(--navy);
+      padding: 130px 6% 72px;
+    }
+
+    .page-header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .breadcrumb {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--amber-light);
+      text-decoration: none;
+      margin-bottom: 1.25rem;
+      transition: color 0.2s;
+    }
+
+    .breadcrumb:hover { color: white; }
+
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+      color: white;
+      line-height: 1.1;
+    }
+
+    /* ─── Partner cards ─── */
+    .partner-section {
+      padding: 80px 6%;
+    }
+
+    .partner-section.alt {
+      background: var(--off-white);
+    }
+
+    .partner-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3.5rem;
+      align-items: start;
+    }
+
+    .partner-photo img,
+    .partner-photo-placeholder {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    .partner-photo-placeholder {
+      background: var(--gray-light);
+    }
+
+    .partner-bio h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem;
+      color: var(--navy);
+      margin-bottom: 0.3rem;
+    }
+
+    .partner-role {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 1.25rem;
+    }
+
+    .partner-bio p:not(.partner-role) {
+      color: var(--text-light);
+      font-size: 1rem;
+      line-height: 1.8;
+      max-width: 680px;
+    }
+
+    .partner-bio p:not(.partner-role) + p:not(.partner-role) {
+      margin-top: 0.9rem;
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      background: var(--navy-dark);
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ─── Hamburger ─── */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .nav-toggle span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: white;
+      border-radius: 2px;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .nav-mobile-menu {
+      display: none;
+      position: fixed;
+      top: 64px;
+      left: 0; right: 0;
+      background: rgba(20, 41, 63, 0.98);
+      padding: 1.25rem 6%;
+      z-index: 99;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .nav-mobile-menu.open { display: block; }
+
+    .nav-mobile-menu a {
+      display: block;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      transition: color 0.2s;
+    }
+
+    .nav-mobile-menu a:last-child { border-bottom: none; }
+    .nav-mobile-menu a:hover { color: var(--amber-light); }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .nav-toggle { display: flex; }
+
+      .partner-inner {
+        grid-template-columns: 1fr;
+        gap: 1.75rem;
+      }
+
+      .partner-photo img,
+      .partner-photo-placeholder {
+        width: 140px;
+        height: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html" class="nav-brand">Ken Moore Solutions</a>
+    <ul class="nav-links">
+      <li><a href="solutions.html">Solutions</a></li>
+      <li><a href="index.html#works">Works</a></li>
+      <li><a href="people.html" class="active">People</a></li>
+      <li><a href="index.html#learn">Learn</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="nav-mobile-menu" id="mobile-menu">
+    <a href="solutions.html" class="mobile-link">Solutions</a>
+    <a href="index.html#works" class="mobile-link">Works</a>
+    <a href="people.html" class="mobile-link">People</a>
+    <a href="index.html#learn" class="mobile-link">Learn</a>
+    <a href="index.html#about" class="mobile-link">About</a>
+    <a href="contact.html" class="mobile-link">Contact</a>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <a href="index.html" class="breadcrumb">&larr; Back to Home</a>
+      <h1>Strategic and Implementation Partners</h1>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- Ken Moore                                   -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="partner-section">
+    <div class="partner-inner">
+      <div class="partner-photo">
+        <img src="assets/ken-moore.avif" alt="Ken Moore">
+      </div>
+      <div class="partner-bio">
+        <h2>Ken Moore</h2>
+        <p class="partner-role">Founder &amp; Principal</p>
+        <p>Placeholder bio for Ken Moore. Replace this paragraph with your own text.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- Razi Thalib                                 -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="partner-section alt">
+    <div class="partner-inner">
+      <div class="partner-photo">
+        <div class="partner-photo-placeholder"></div>
+      </div>
+      <div class="partner-bio">
+        <h2>Razi Thalib</h2>
+        <p class="partner-role">K-12 Education Innovation</p>
+        <p>Placeholder bio for Eric Natanael. Replace this paragraph with your own text.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- Eric Natanael                               -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="partner-section alt">
+    <div class="partner-inner">
+      <div class="partner-photo">
+        <img src="assets/headshot-eric-natanael.png" alt="Eric Natanael">
+      </div>
+      <div class="partner-bio">
+        <h2>Eric Natanael</h2>
+        <p class="partner-role">Program Evaluation & Sustainability</p>
+        <p>Placeholder bio for Eric Natanael. Replace this paragraph with your own text.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- Hamish Coates                               -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="partner-section">
+    <div class="partner-inner">
+      <div class="partner-photo">
+        <img src="assets/headshot-hamish-coates.avif" alt="Hamish Coates">
+      </div>
+      <div class="partner-bio">
+        <h2>Hamish Coates</h2>
+        <p class="partner-role">Higher Education Policy, Assessment & Research</p>
+        <p>Placeholder bio for Hamish Coates. Replace this paragraph with your own text.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- Nick Psanoudakis                            -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="partner-section alt">
+    <div class="partner-inner">
+      <div class="partner-photo">
+        <div class="partner-photo-placeholder"></div>
+      </div>
+      <div class="partner-bio">
+        <h2>Partner Name</h2>
+        <p class="partner-role">Higher Education Strategy & Industry Engagement</p>
+        <p>Placeholder bio. Replace with headshot, name, role, and bio text when ready.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 Ken Moore. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const toggle = document.querySelector('.nav-toggle');
+    const menu = document.getElementById('mobile-menu');
+
+    toggle.addEventListener('click', function () {
+      const open = menu.classList.toggle('open');
+      toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open);
+    });
+
+    document.querySelectorAll('.mobile-link').forEach(function (link) {
+      link.addEventListener('click', function () {
+        menu.classList.remove('open');
+        toggle.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  </script>
+
+</body>
+</html>
